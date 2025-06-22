@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codex - Internal Code Search</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-code"></i>
+                    <span>Codex</span>
+                </div>
+                <nav class="nav">
+                    <a href="/" class="nav-link active">
+                        <i class="fas fa-search"></i>
+                        Search
+                    </a>
+                    <a href="/admin.html" class="nav-link" id="adminLink" style="display:none;">
+                        <i class="fas fa-cog"></i>
+                        Admin Panel
+                    </a>
+                </nav>
+                <div class="user-section">
+                    <div id="userInfo" style="display:none;">
+                        <span class="username" id="username"></span>
+                        <button class="btn-logout" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </div>
+                    <a href="/login.html" class="btn-login" id="loginLink">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h1 class="search-title">Find Your Code, Fast</h1>
+                <p class="search-subtitle">Search through all company code repositories</p>
+                
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchInput" class="search-input" 
+                               placeholder="Search for files, functions, or keywords..." 
+                               autocomplete="off">
+                        <button class="search-button" onclick="performSearch()">
+                            Search
+                        </button>
+                    </div>
+                    <div id="suggestions" class="suggestions-dropdown"></div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters">
+                    <select id="projectFilter" class="filter-select">
+                        <option value="">All Projects</option>
+                    </select>
+                    <select id="typeFilter" class="filter-select">
+                        <option value="">All File Types</option>
+                        <option value=".py">Python (.py)</option>
+                        <option value=".js">JavaScript (.js)</option>
+                        <option value=".c">C (.c)</option>
+                        <option value=".cpp">C++ (.cpp)</option>
+                        <option value=".h">Header (.h)</option>
+                        <option value=".ino">Arduino (.ino)</option>
+                        <option value=".java">Java (.java)</option>
+                        <option value=".cs">C# (.cs)</option>
+                    </select>
+                    <button class="btn-clear-filters" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="results-header">
+                    <h2 class="results-title">
+                        <span id="resultCount">0</span> results found
+                    </h2>
+                    <div class="sort-options">
+                        <label>Sort by:</label>
+                        <select id="sortBy" class="sort-select" onchange="sortResults()">
+                            <option value="relevance">Relevance</option>
+                            <option value="name">File Name</option>
+                            <option value="modified">Last Modified</option>
+                            <option value="size">File Size</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="searchResults" class="search-results"></div>
+                
+                <div id="pagination" class="pagination"></div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Searching...</p>
+            </div>
+
+            <!-- No Results Message -->
+            <div id="noResults" class="no-results" style="display: none;">
+                <i class="fas fa-search"></i>
+                <h3>No results found</h3>
+                <p>Try different keywords or adjust your filters</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalFileName">File Preview</h3>
+                <button class="close-button" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="file-info">
+                    <span class="info-item">
+                        <i class="fas fa-folder"></i>
+                        Project: <span id="modalProject"></span>
+                    </span>
+                    <span class="info-item">
+                        <i class="fas fa-calendar"></i>
+                        Modified: <span id="modalModified"></span>
+                    </span>
+                    <span class="info-item">
+                        <i class="fas fa-file-code"></i>
+                        <span id="modalLines"></span> lines
+                    </span>
+                </div>
+                <div class="file-path">
+                    <i class="fas fa-folder-open"></i>
+                    <span id="modalPath"></span>
+                </div>
+                <div id="codeContainer" class="code-container">
+                    <pre id="codePreview" class="code-preview"><code></code></pre>
+                </div>
+                <div id="fileError" class="file-error" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Unable to load file content</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="downloadFile()">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="btn btn-secondary" onclick="copyFilePath()">
+                    <i class="fas fa-copy"></i> Copy Path
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-arduino.min.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>

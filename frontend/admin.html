@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Codex</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-code"></i>
+                    <span>Codex Admin</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#files" class="nav-item" onclick="showSection('files')">
+                    <i class="fas fa-file-code"></i>
+                    <span>Manage Files</span>
+                </a>
+                <a href="#projects" class="nav-item" onclick="showSection('projects')">
+                    <i class="fas fa-folder"></i>
+                    <span>Projects</span>
+                </a>
+                <a href="#tags" class="nav-item" onclick="showSection('tags')">
+                    <i class="fas fa-tags"></i>
+                    <span>Tags</span>
+                </a>
+                <a href="#indexing" class="nav-item" onclick="showSection('indexing')">
+                    <i class="fas fa-sync"></i>
+                    <span>File Indexing</span>
+                </a>
+                <a href="#users" class="nav-item" onclick="showSection('users')">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+                <a href="/" class="nav-item">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Search</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="admin-info">
+                    <i class="fas fa-user-shield"></i>
+                    <span id="adminName">Admin</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <div class="section-header">
+                    <h1>Dashboard</h1>
+                    <button class="btn btn-primary" onclick="loadDashboardStats()">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalFiles">0</h3>
+                            <p>Total Files</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalProjects">0</h3>
+                            <p>Projects</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalTags">0</h3>
+                            <p>Tags</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalSearches">0</h3>
+                            <p>Searches Today</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h2>Recent Activity</h2>
+                        <div id="recentActivity" class="activity-list">
+                            <!-- Activity items will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <h2>Quick Actions</h2>
+                        <div class="quick-actions">
+                            <button class="action-card" onclick="showAddFileModal()">
+                                <i class="fas fa-plus"></i>
+                                <span>Add New File</span>
+                            </button>
+                            <button class="action-card" onclick="showSection('indexing')">
+                                <i class="fas fa-sync"></i>
+                                <span>Run Indexing</span>
+                            </button>
+                            <button class="action-card" onclick="showAddProjectModal()">
+                                <i class="fas fa-folder-plus"></i>
+                                <span>New Project</span>
+                            </button>
+                            <button class="action-card" onclick="showAddTagModal()">
+                                <i class="fas fa-tag"></i>
+                                <span>New Tag</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Files Section -->
+            <section id="files-section" class="content-section">
+                <div class="section-header">
+                    <h1>Manage Files</h1>
+                    <button class="btn btn-primary" onclick="showAddFileModal()">
+                        <i class="fas fa-plus"></i> Add New File
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>File Name</th>
+                                <th>Project</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Tags</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filesTableBody">
+                            <!-- Files will be loaded here -->
+                        </tbody>
+                    </table>
+                    
+                    <div id="filesPagination" class="pagination"></div>
+                </div>
+            </section>
+
+            <!-- Projects Section -->
+            <section id="projects-section" class="content-section">
+                <div class="section-header">
+                    <h1>Projects</h1>
+                    <button class="btn btn-primary" onclick="showAddProjectModal()">
+                        <i class="fas fa-plus"></i> Create Project
+                    </button>
+                </div>
+                
+                <div class="projects-grid" id="projectsGrid">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Tags Section -->
+            <section id="tags-section" class="content-section">
+                <div class="section-header">
+                    <h1>Tags</h1>
+                    <button class="btn btn-primary" onclick="showAddTagModal()">
+                        <i class="fas fa-plus"></i> Create Tag
+                    </button>
+                </div>
+                
+                <div class="tags-container" id="tagsContainer">
+                    <!-- Tags will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Indexing Section -->
+            <section id="indexing-section" class="content-section">
+                <h1>File Indexing</h1>
+                <div class="indexing-panel">
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Click the button below to scan and index all files from the configured repository path.</p>
+                        <p>This process will discover new files and update existing ones.</p>
+                        <p><strong>Repository Path:</strong> <code id="repoPath">${CODE_REPOSITORY_PATH}</code></p>
+                    </div>
+                    
+                    <button id="startIndexingBtn" class="btn btn-primary btn-large" onclick="startIndexing()">
+                        <i class="fas fa-sync"></i> Start Indexing
+                    </button>
+                    
+                    <div id="indexingProgress" class="indexing-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="indexingStatus">Initializing...</p>
+                    </div>
+                    
+                    <div id="indexingResults" class="indexing-results" style="display: none;">
+                        <h3>Indexing Complete</h3>
+                        <div class="results-grid">
+                            <div class="result-item">
+                                <span class="result-label">Files Indexed:</span>
+                                <span class="result-value" id="filesIndexed">0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Files Updated:</span>
+                                <span class="result-value" id="filesUpdated">0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Files Skipped:</span>
+                                <span class="result-value" id="filesSkipped">0</span>
+                            </div>
+                        </div>
+                        <div id="indexingErrors"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users-section" class="content-section">
+                <div class="section-header">
+                    <h1>Users</h1>
+                    <button class="btn btn-primary" onclick="showAddUserModal()">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add File Modal -->
+    <div id="addFileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New File</h3>
+                <button class="close-button" onclick="closeModal('addFileModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addFileForm" onsubmit="handleAddFile(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>File Name <span class="required">*</span></label>
+                        <input type="text" name="filename" required class="form-input"
+                               placeholder="e.g., motor_control.ino">
+                    </div>
+                    <div class="form-group">
+                        <label>File Path <span class="required">*</span></label>
+                        <input type="text" name="filepath" required class="form-input"
+                               placeholder="e.g., C:\Projects\Arduino\motor_control.ino">
+                    </div>
+                    <div class="form-group">
+                        <label>Project <span class="required">*</span></label>
+                        <select id="addFileProject" name="project_id" required class="form-input">
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" class="form-input" rows="3"
+                                  placeholder="Brief description of what this file does..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Tags (comma separated)</label>
+                        <input type="text" name="tags" class="form-input" 
+                               placeholder="e.g., motor, sensor, arduino">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Add File</button>
+                    <button type="button" class="btn btn-secondary" 
+                            onclick="closeModal('addFileModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit File Modal -->
+    <div id="editFileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit File</h3>
+                <button class="close-button" onclick="closeModal('editFileModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editFileForm" onsubmit="handleEditFile(event)">
+                <input type="hidden" id="editFileId" name="file_id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>File Name</label>
+                        <input type="text" id="editFileName" class="form-input" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="editFileDescription" name="description" class="form-input" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Project</label>
+                        <select id="editFileProject" name="project_id" class="form-input">
+                            <option value="">Select Project</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tags (comma separated)</label>
+                        <input type="text" id="editFileTags" name="tags" class="form-input">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Update File</button>
+                    <button type="button" class="btn btn-secondary" 
+                            onclick="closeModal('editFileModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div id="addProjectModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Create New Project</h3>
+                <button class="close-button" onclick="closeModal('addProjectModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addProjectForm" onsubmit="handleAddProject(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Project Name <span class="required">*</span></label>
+                        <input type="text" name="name" required class="form-input"
+                               placeholder="e.g., Arduino Motor Control">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" class="form-input" rows="3"
+                                  placeholder="Brief description of the project..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                    <button type="button" class="btn btn-secondary" 
+                            onclick="closeModal('addProjectModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Tag Modal -->
+    <div id="addTagModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Create New Tag</h3>
+                <button class="close-button" onclick="closeModal('addTagModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addTagForm" onsubmit="handleAddTag(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tag Name <span class="required">*</span></label>
+                        <input type="text" name="name" required class="form-input"
+                               placeholder="e.g., sensor">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" class="form-input" rows="3"
+                                  placeholder="What this tag represents..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create Tag</button>
+                    <button type="button" class="btn btn-secondary" 
+                            onclick="closeModal('addTagModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

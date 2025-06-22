@@ -1,0 +1,123 @@
+Folder PATH listing for volume Claude
+Volume serial number is 0284-FD56
+F:.
+|   .env
+|   .env.example
+|   add_sample_files.py
+|   create_structure.ps1
+|   deploy.bat
+|   gunicorn_config.py
+|   initial_setup.py
+|   QUICK_START.md
+|   README.md
+|   requirements.txt
+|   run.ps1
+|   run_production.bat
+|   setup_database.py
+|   structure.txt
+|   test_db_models.py
+|   test_db_quick.py
+|   test_system.py
+|   
++---backend
+|   |   app.py
+|   |   
+|   +---app
+|   |   |   __init__.py
+|   |   |   
+|   |   +---api
+|   |   |   |   admin.py
+|   |   |   |   auth.py
+|   |   |   |   files.py
+|   |   |   |   search.py
+|   |   |   |   __init__.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           admin.cpython-310.pyc
+|   |   |           auth.cpython-310.pyc
+|   |   |           files.cpython-310.pyc
+|   |   |           search.cpython-310.pyc
+|   |   |           __init__.cpython-310.pyc
+|   |   |           
+|   |   +---models
+|   |   |   |   __init__.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           __init__.cpython-310.pyc
+|   |   |           
+|   |   +---services
+|   |   |   |   file_indexer.py
+|   |   |   |   __init__.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           file_indexer.cpython-310.pyc
+|   |   |           __init__.cpython-310.pyc
+|   |   |           
+|   |   +---utils
+|   |   |   |   auth.py
+|   |   |   |   decorators.py
+|   |   |   |   search.py
+|   |   |   |   __init__.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           decorators.cpython-310.pyc
+|   |   |           search.cpython-310.pyc
+|   |   |           __init__.cpython-310.pyc
+|   |   |           
+|   |   \---__pycache__
+|   |           __init__.cpython-310.pyc
+|   |           
+|   \---logs
++---config
++---database
+|   |   schema.sql
+|   |   
+|   \---migrations
++---deployment
++---file_storage
++---frontend
+|   |   admin.html
+|   |   index.html
+|   |   login.html
+|   |   
+|   +---public
+|   |   +---css
+|   |   |       admin.css
+|   |   |       style.css
+|   |   |       
+|   |   \---js
+|   |           admin.js
+|   |           app.js
+|   |           
+|   \---src
+|       +---admin
+|       \---employee
++---logs
+|       codex.log
+|       
+\---sample-data
+    |   medical_data_logger.py
+    |   medical_utils.js
+    |   motor_control_medical.py
+    |   
+    +---arduino
+    |       dht22_sensor.ino
+    |       servo_control.ino
+    |       stepper_control.h
+    |       
+    +---arduino-sensors
+    |       dht_sensor.ino
+    |       
+    +---esp32
+    |       wifi_manager.ino
+    |       
+    +---esp32-projects
+    |       medical_ble.ino
+    |       wifi_manager.ino
+    |       
+    +---python
+    |       gpio_controller.py
+    |       
+    \---web
+            iot_dashboard.html
+            

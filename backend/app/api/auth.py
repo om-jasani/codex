@@ -157,7 +157,7 @@ def create_default_admin():
         db.session.rollback()
 
 # Register this to run when app context is available
-@auth_bp.before_app_first_request
+@auth_bp.before_app_request
 def initialize_auth():
-    """Initialize authentication on first request"""
+    """Initialize authentication on each request"""
     create_default_admin()

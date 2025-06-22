@@ -26,46 +26,24 @@ F:.
 |   |   |   __init__.py
 |   |   |   
 |   |   +---api
-|   |   |   |   admin.py
-|   |   |   |   auth.py
-|   |   |   |   files.py
-|   |   |   |   search.py
-|   |   |   |   __init__.py
-|   |   |   |   
-|   |   |   \---__pycache__
-|   |   |           admin.cpython-310.pyc
-|   |   |           auth.cpython-310.pyc
-|   |   |           files.cpython-310.pyc
-|   |   |           search.cpython-310.pyc
-|   |   |           __init__.cpython-310.pyc
-|   |   |           
+|   |   |       admin.py
+|   |   |       auth.py
+|   |   |       files.py
+|   |   |       search.py
+|   |   |       __init__.py
+|   |   |       
 |   |   +---models
-|   |   |   |   __init__.py
-|   |   |   |   
-|   |   |   \---__pycache__
-|   |   |           __init__.cpython-310.pyc
-|   |   |           
+|   |   |       __init__.py
+|   |   |       
 |   |   +---services
-|   |   |   |   file_indexer.py
-|   |   |   |   __init__.py
-|   |   |   |   
-|   |   |   \---__pycache__
-|   |   |           file_indexer.cpython-310.pyc
-|   |   |           __init__.cpython-310.pyc
-|   |   |           
-|   |   +---utils
-|   |   |   |   auth.py
-|   |   |   |   decorators.py
-|   |   |   |   search.py
-|   |   |   |   __init__.py
-|   |   |   |   
-|   |   |   \---__pycache__
-|   |   |           decorators.cpython-310.pyc
-|   |   |           search.cpython-310.pyc
-|   |   |           __init__.cpython-310.pyc
-|   |   |           
-|   |   \---__pycache__
-|   |           __init__.cpython-310.pyc
+|   |   |       file_indexer.py
+|   |   |       __init__.py
+|   |   |       
+|   |   \---utils
+|   |           auth.py
+|   |           decorators.py
+|   |           search.py
+|   |           __init__.py
 |   |           
 |   \---logs
 +---config

@@ -80,15 +80,21 @@ class FileIndexer:
         if os.path.basename(filepath).startswith('.'):
             return False
         
-        # Skip binary files
-        mime_type = mimetypes.guess_type(filepath)[0]
-        if mime_type and not mime_type.startswith('text/'):
-            return False
-        
-        # Check allowed extensions
+        # Check allowed extensions first
         if self.allowed_extensions:
             ext = Path(filepath).suffix.lower()
-            return ext in self.allowed_extensions
+            if ext not in self.allowed_extensions:
+                return False
+        
+        # Skip binary files (but allow files with extensions in our allowed list)
+        mime_type = mimetypes.guess_type(filepath)[0]
+        if mime_type and not (mime_type.startswith('text/') or 
+                             mime_type in ['application/javascript', 'application/json', 
+                                          'application/xml', 'application/sql']):
+            ext = Path(filepath).suffix.lower()
+            # Allow if extension is explicitly in our allowed list
+            if ext not in self.allowed_extensions:
+                return False
         
         return True
     
@@ -183,75 +189,85 @@ class FileIndexer:
     
     def index_file(self, filepath, base_path):
         """Index a single file"""
-        if not self._should_index_file(filepath):
-            self.skipped_count += 1
-            return False
-        
-        # Get file info
-        file_info = self._get_file_info(filepath)
-        if not file_info:
-            self.skipped_count += 1
-            return False
-        
-        # Extract project name
-        project_name = self._extract_project_name(filepath, base_path)
-        
-        # Get or create project
-        project = Project.query.filter_by(name=project_name).first()
-        if not project:
-            project = Project(
-                name=project_name,
-                description=f"Auto-created project for {project_name}"
-            )
-            db.session.add(project)
-            db.session.flush()
-        
-        # Check if file already exists
-        existing = File.query.filter_by(filepath=filepath).first()
-        
-        if existing:
-            # Update existing file if it has changed
-            if existing.content_hash != file_info['content_hash']:
-                existing.size = file_info['size']
-                existing.line_count = file_info['line_count']
-                existing.modified_date = file_info['modified_date']
-                existing.content_hash = file_info['content_hash']
-                existing.indexed_date = datetime.utcnow()
-                self.updated_count += 1
-            return True
-        
-        # Create new file record
-        filename = os.path.basename(filepath)
-        filetype = Path(filepath).suffix.lower()
-        
-        new_file = File(
-            filename=filename,
-            filepath=filepath,
-            filetype=filetype,
-            project_id=project.id,
-            size=file_info['size'],
-            line_count=file_info['line_count'],
-            modified_date=file_info['modified_date'],
-            content_hash=file_info['content_hash'],
-            description=f"Auto-indexed from {project_name}"
-        )
-        
-        # Auto-generate and add tags
-        auto_tags = self._auto_generate_tags(filepath)
-        for tag_name in auto_tags:
-            tag = Tag.query.filter_by(name=tag_name).first()
-            if not tag:
-                tag = Tag(
-                    name=tag_name,
-                    description=f"Auto-generated tag"
+        try:
+            if not self._should_index_file(filepath):
+                self.skipped_count += 1
+                return False
+            
+            # Get file info
+            file_info = self._get_file_info(filepath)
+            if not file_info:
+                self.skipped_count += 1
+                return False
+            
+            # Extract project name
+            project_name = self._extract_project_name(filepath, base_path)
+            
+            # Get or create project
+            project = Project.query.filter_by(name=project_name).first()
+            if not project:
+                project = Project(
+                    name=project_name,
+                    description=f"Auto-created project for {project_name}"
                 )
-                db.session.add(tag)
+                db.session.add(project)
                 db.session.flush()
-            new_file.tags.append(tag)
-        
-        db.session.add(new_file)
-        self.indexed_count += 1
-        return True
+            
+            # Check if file already exists
+            existing = File.query.filter_by(filepath=filepath).first()
+            
+            if existing:
+                # Update existing file if it has changed
+                if existing.content_hash != file_info['content_hash']:
+                    existing.size = file_info['size']
+                    existing.line_count = file_info['line_count']
+                    existing.modified_date = file_info['modified_date']
+                    existing.content_hash = file_info['content_hash']
+                    existing.indexed_date = datetime.utcnow()
+                    self.updated_count += 1
+                    print(f"Updated: {filepath}")
+                else:
+                    print(f"Already indexed (no changes): {filepath}")
+                return True
+            
+            # Create new file record
+            filename = os.path.basename(filepath)
+            filetype = Path(filepath).suffix.lower()
+            
+            new_file = File(
+                filename=filename,
+                filepath=filepath,
+                filetype=filetype,
+                project_id=project.id,
+                size=file_info['size'],
+                line_count=file_info['line_count'],
+                modified_date=file_info['modified_date'],
+                content_hash=file_info['content_hash'],
+                description=f"Auto-indexed from {project_name}"
+            )
+            
+            # Auto-generate and add tags
+            auto_tags = self._auto_generate_tags(filepath)
+            for tag_name in auto_tags:
+                tag = Tag.query.filter_by(name=tag_name).first()
+                if not tag:
+                    tag = Tag(
+                        name=tag_name,
+                        description=f"Auto-generated tag"
+                    )
+                    db.session.add(tag)
+                    db.session.flush()
+                new_file.tags.append(tag)
+            
+            db.session.add(new_file)
+            self.indexed_count += 1
+            print(f"Indexed: {filepath}")
+            return True
+            
+        except Exception as e:
+            print(f"Error indexing {filepath}: {str(e)}")
+            self.errors.append(f"Error indexing {filepath}: {str(e)}")
+            return False
     
     def index_directory(self, directory_path):
         """Recursively index all files in a directory"""

@@ -78,19 +78,19 @@ CREATE TABLE IF NOT EXISTS file_downloads (
 );
 
 -- Create indexes for better performance
-CREATE INDEX idx_files_filename ON files(filename);
-CREATE INDEX idx_files_project ON files(project_id);
-CREATE INDEX idx_files_filetype ON files(filetype);
-CREATE INDEX idx_files_modified ON files(modified_date);
-CREATE INDEX idx_search_logs_term ON search_logs(search_term);
-CREATE INDEX idx_search_logs_timestamp ON search_logs(timestamp);
-CREATE INDEX idx_file_tags_file ON file_tags(file_id);
-CREATE INDEX idx_file_tags_tag ON file_tags(tag_id);
+CREATE INDEX IF NOT EXISTS idx_files_filename ON files(filename);
+CREATE INDEX IF NOT EXISTS idx_files_project ON files(project_id);
+CREATE INDEX IF NOT EXISTS idx_files_filetype ON files(filetype);
+CREATE INDEX IF NOT EXISTS idx_files_modified ON files(modified_date);
+CREATE INDEX IF NOT EXISTS idx_search_logs_term ON search_logs(search_term);
+CREATE INDEX IF NOT EXISTS idx_search_logs_timestamp ON search_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_file_tags_file ON file_tags(file_id);
+CREATE INDEX IF NOT EXISTS idx_file_tags_tag ON file_tags(tag_id);
 
 -- Create full-text search index
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE INDEX idx_files_filename_trgm ON files USING gin(filename gin_trgm_ops);
-CREATE INDEX idx_files_description_trgm ON files USING gin(description gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_files_filename_trgm ON files USING gin(filename gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_files_description_trgm ON files USING gin(description gin_trgm_ops);
 
 -- Create views for common queries
 CREATE OR REPLACE VIEW file_details AS

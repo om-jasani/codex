@@ -20,3 +20,6 @@ wheels/
 .installed.cfg
 *.egg
 *.log
+logs/
+logs/*
+logs/*.log

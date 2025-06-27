@@ -1,46 +1,148 @@
-<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <g fill="currentColor">
-    <!-- Circuit paths -->
-    <path d="M4 8h4v2H4z"/>
-    <path d="M8 6v4h2V6z"/>
-    <path d="M10 8h6v2h-6z"/>
-    <path d="M16 6v4h2V6z"/>
-    <path d="M18 8h6v2h-6z"/>
-    <path d="M24 6v4h2V6z"/>
-    <path d="M26 8h2v2h-2z"/>
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chipGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#000000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#333333;stop-opacity:1" />
+    </linearGradient>
     
-    <!-- Horizontal connections -->
-    <path d="M4 14h8v2h-8z"/>
-    <path d="M14 14h4v2h-4z"/>
-    <path d="M20 14h8v2h-8z"/>
+    <linearGradient id="traceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00a8cc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0066aa;stop-opacity:1" />
+    </linearGradient>
     
-    <!-- Vertical connections -->
-    <path d="M6 10v4h2v-4z"/>
-    <path d="M12 10v4h2v-4z"/>
-    <path d="M18 10v4h2v-4z"/>
-    <path d="M24 10v4h2v-4z"/>
-    
-    <!-- Circuit nodes (small squares) -->
-    <rect x="5" y="13" width="3" height="3"/>
-    <rect x="13" y="13" width="3" height="3"/>
-    <rect x="21" y="13" width="3" height="3"/>
-    
-    <!-- Bottom circuit layer -->
-    <path d="M4 20h6v2H4z"/>
-    <path d="M12 20h8v2h-8z"/>
-    <path d="M22 20h6v2h-6z"/>
-    
-    <!-- Vertical connections bottom -->
-    <path d="M8 16v4h2v-4z"/>
-    <path d="M16 16v4h2v-4z"/>
-    <path d="M24 16v4h2v-4z"/>
-    
-    <!-- Bottom nodes -->
-    <rect x="7" y="23" width="3" height="3"/>
-    <rect x="15" y="23" width="3" height="3"/>
-    <rect x="23" y="23" width="3" height="3"/>
-    
-    <!-- Final connections -->
-    <path d="M8 26h16v2H8z"/>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="120" height="120" fill="#f8f8f8"/>
+  
+  <!-- Background circuit pattern -->
+  <g opacity="0.15">
+    <line x1="0" y1="30" x2="120" y2="30" stroke="#cccccc" stroke-width="0.5"/>
+    <line x1="0" y1="60" x2="120" y2="60" stroke="#cccccc" stroke-width="0.5"/>
+    <line x1="0" y1="90" x2="120" y2="90" stroke="#cccccc" stroke-width="0.5"/>
+    <line x1="30" y1="0" x2="30" y2="120" stroke="#cccccc" stroke-width="0.5"/>
+    <line x1="60" y1="0" x2="60" y2="120" stroke="#cccccc" stroke-width="0.5"/>
+    <line x1="90" y1="0" x2="90" y2="120" stroke="#cccccc" stroke-width="0.5"/>
   </g>
+  
+  <!-- Main circuit traces with routing -->
+  <g filter="url(#glow)">
+    <!-- Complex horizontal traces -->
+    <path d="M 5 40 L 25 40 L 35 50 L 45 50" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 5 50 L 20 50 L 30 40 L 45 40" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 5 60 L 30 60 L 45 60" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 5 70 L 25 70 L 35 60 L 45 60" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 5 80 L 20 80 L 30 70 L 45 70" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    
+    <path d="M 75 40 L 85 50 L 95 50 L 115 50" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 75 50 L 90 50 L 100 40 L 115 40" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 75 60 L 90 60 L 115 60" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 75 70 L 85 60 L 95 60 L 115 70" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 75 80 L 90 70 L 100 70 L 115 80" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    
+    <!-- Complex vertical traces -->
+    <path d="M 40 5 L 40 25 L 50 35 L 50 45" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 50 5 L 50 20 L 40 30 L 40 45" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 60 5 L 60 30 L 60 45" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 70 5 L 70 25 L 60 35 L 60 45" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 80 5 L 80 20 L 70 30 L 70 45" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    
+    <path d="M 40 75 L 50 85 L 50 95 L 50 115" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 50 75 L 40 90 L 40 100 L 40 115" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 60 75 L 60 90 L 60 115" stroke="url(#traceGradient)" stroke-width="2.5" fill="none"/>
+    <path d="M 70 75 L 60 85 L 60 95 L 70 115" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+    <path d="M 80 75 L 70 90 L 70 100 L 80 115" stroke="url(#traceGradient)" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Central microprocessor with detailed pins -->
+  <rect x="45" y="45" width="30" height="30" fill="url(#chipGradient)" stroke="#000000" stroke-width="2"/>
+  <rect x="48" y="48" width="24" height="24" fill="#333333" stroke="#666666" stroke-width="1"/>
+  
+  <!-- Detailed pin layout -->
+  <!-- Top pins -->
+  <rect x="47" y="42" width="3" height="6" fill="#000000"/>
+  <rect x="52" y="42" width="3" height="6" fill="#000000"/>
+  <rect x="57" y="42" width="3" height="6" fill="#000000"/>
+  <rect x="62" y="42" width="3" height="6" fill="#000000"/>
+  <rect x="67" y="42" width="3" height="6" fill="#000000"/>
+  <rect x="72" y="42" width="3" height="6" fill="#000000"/>
+  
+  <!-- Bottom pins -->
+  <rect x="47" y="72" width="3" height="6" fill="#000000"/>
+  <rect x="52" y="72" width="3" height="6" fill="#000000"/>
+  <rect x="57" y="72" width="3" height="6" fill="#000000"/>
+  <rect x="62" y="72" width="3" height="6" fill="#000000"/>
+  <rect x="67" y="72" width="3" height="6" fill="#000000"/>
+  <rect x="72" y="72" width="3" height="6" fill="#000000"/>
+  
+  <!-- Left pins -->
+  <rect x="42" y="47" width="6" height="3" fill="#000000"/>
+  <rect x="42" y="52" width="6" height="3" fill="#000000"/>
+  <rect x="42" y="57" width="6" height="3" fill="#000000"/>
+  <rect x="42" y="62" width="6" height="3" fill="#000000"/>
+  <rect x="42" y="67" width="6" height="3" fill="#000000"/>
+  <rect x="42" y="72" width="6" height="3" fill="#000000"/>
+  
+  <!-- Right pins -->
+  <rect x="72" y="47" width="6" height="3" fill="#000000"/>
+  <rect x="72" y="52" width="6" height="3" fill="#000000"/>
+  <rect x="72" y="57" width="6" height="3" fill="#000000"/>
+  <rect x="72" y="62" width="6" height="3" fill="#000000"/>
+  <rect x="72" y="67" width="6" height="3" fill="#000000"/>
+  <rect x="72" y="72" width="6" height="3" fill="#000000"/>
+  
+  <!-- Electronic components -->
+  <!-- Resistors -->
+  <path d="M 20 40 L 23 37 L 26 43 L 29 37 L 32 43 L 35 40" stroke="#ff6600" stroke-width="2" fill="none"/>
+  <path d="M 85 40 L 88 37 L 91 43 L 94 37 L 97 43 L 100 40" stroke="#ff6600" stroke-width="2" fill="none"/>
+  
+  <!-- Capacitors -->
+  <line x1="48" y1="25" x2="48" y2="20" stroke="#ff6600" stroke-width="2"/>
+  <line x1="52" y1="25" x2="52" y2="20" stroke="#ff6600" stroke-width="2"/>
+  <line x1="68" y1="95" x2="68" y2="100" stroke="#ff6600" stroke-width="2"/>
+  <line x1="72" y1="95" x2="72" y2="100" stroke="#ff6600" stroke-width="2"/>
+  
+  <!-- Junction nodes -->
+  <circle cx="25" cy="50" r="2.5" fill="#0066aa"/>
+  <circle cx="35" cy="40" r="2" fill="#0066aa"/>
+  <circle cx="30" cy="60" r="2" fill="#0066aa"/>
+  <circle cx="85" cy="50" r="2.5" fill="#0066aa"/>
+  <circle cx="95" cy="40" r="2" fill="#0066aa"/>
+  <circle cx="90" cy="60" r="2" fill="#0066aa"/>
+  
+  <circle cx="50" cy="25" r="2.5" fill="#0066aa"/>
+  <circle cx="40" cy="35" r="2" fill="#0066aa"/>
+  <circle cx="60" cy="30" r="2" fill="#0066aa"/>
+  <circle cx="50" cy="95" r="2.5" fill="#0066aa"/>
+  <circle cx="60" cy="85" r="2" fill="#0066aa"/>
+  <circle cx="70" cy="90" r="2" fill="#0066aa"/>
+  
+  <!-- Terminal connection points -->
+  <circle cx="5" cy="50" r="3" fill="#000000"/>
+  <circle cx="5" cy="60" r="2.5" fill="#000000"/>
+  <circle cx="5" cy="70" r="2.5" fill="#000000"/>
+  <circle cx="115" cy="50" r="3" fill="#000000"/>
+  <circle cx="115" cy="60" r="2.5" fill="#000000"/>
+  <circle cx="115" cy="70" r="2.5" fill="#000000"/>
+  
+  <circle cx="50" cy="5" r="3" fill="#000000"/>
+  <circle cx="60" cy="5" r="2.5" fill="#000000"/>
+  <circle cx="70" cy="5" r="2.5" fill="#000000"/>
+  <circle cx="60" cy="115" r="3" fill="#000000"/>
+  <circle cx="50" cy="115" r="2.5" fill="#000000"/>
+  <circle cx="70" cy="115" r="2.5" fill="#000000"/>
+  
+  <!-- Corner mounting holes -->
+  <circle cx="15" cy="15" r="2" fill="none" stroke="#666666" stroke-width="1"/>
+  <circle cx="105" cy="15" r="2" fill="none" stroke="#666666" stroke-width="1"/>
+  <circle cx="15" cy="105" r="2" fill="none" stroke="#666666" stroke-width="1"/>
+  <circle cx="105" cy="105" r="2" fill="none" stroke="#666666" stroke-width="1"/>
 </svg>

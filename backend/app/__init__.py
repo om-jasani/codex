@@ -125,6 +125,10 @@ def create_app(config_name='production'):
     def js_files(filename):
         return send_from_directory(os.path.join(frontend_path, 'public', 'js'), filename)
     
+    @app.route('/images/<path:filename>')
+    def image_files(filename):
+        return send_from_directory(os.path.join(frontend_path, 'public', 'images'), filename)
+    
     # Favicon
     @app.route('/favicon.ico')
     def favicon():

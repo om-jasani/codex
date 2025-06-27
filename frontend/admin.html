@@ -40,9 +40,17 @@
                     <i class="fas fa-sync"></i>
                     <span>File Indexing</span>
                 </a>
+                <a href="#maintenance" class="nav-item" onclick="showSection('maintenance')">
+                    <i class="fas fa-tools"></i>
+                    <span>Maintenance</span>
+                </a>
                 <a href="#users" class="nav-item" onclick="showSection('users')">
                     <i class="fas fa-users"></i>
                     <span>Users</span>
+                </a>
+                <a href="#backup" class="nav-item" onclick="showSection('backup')">
+                    <i class="fas fa-download"></i>
+                    <span>Backup & Restore</span>
                 </a>
                 <a href="/" class="nav-item">
                     <i class="fas fa-arrow-left"></i>
@@ -144,9 +152,42 @@
             <section id="files-section" class="content-section">
                 <div class="section-header">
                     <h1>Manage Files</h1>
-                    <button class="btn btn-primary" onclick="showAddFileModal()">
-                        <i class="fas fa-plus"></i> Add New File
-                    </button>
+                    <div class="header-buttons">
+                        <button class="btn btn-primary" onclick="showAddFileModal()">
+                            <i class="fas fa-plus"></i> Add File Location
+                        </button>
+                        <button class="btn btn-primary" onclick="showUploadModal()">
+                            <i class="fas fa-upload"></i> Upload Files
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Drag and Drop Upload Area -->
+                <div id="dragDropArea" class="drag-drop-area" style="display: none;">
+                    <div class="drag-drop-content">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Drag & Drop Files Here</h3>
+                        <p>or click to select files</p>
+                        <input type="file" id="fileInput" multiple accept=".txt,.py,.js,.html,.css,.cpp,.c,.h,.hpp,.java,.php,.rb,.go,.rs,.swift,.kt,.scala,.ino,.pde,.json,.xml,.yaml,.yml,.md,.rst,.sql,.sh,.bat,.ps1">
+                    </div>
+                    <div class="upload-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Project <span class="required">*</span></label>
+                                <select id="uploadProjectSelect" class="form-input" required>
+                                    <option value="">Select Project</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <input type="text" id="uploadDescription" class="form-input" placeholder="Optional description">
+                            </div>
+                            <div class="form-group">
+                                <label>Tags</label>
+                                <input type="text" id="uploadTags" class="form-input" placeholder="comma, separated, tags">
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="table-container">
@@ -201,7 +242,10 @@
             <!-- Indexing Section -->
             <section id="indexing-section" class="content-section">
                 <h1>File Indexing</h1>
+                
+                <!-- Main Repository Indexing -->
                 <div class="indexing-panel">
+                    <h2>Main Repository Indexing</h2>
                     <div class="info-box">
                         <i class="fas fa-info-circle"></i>
                         <p>Click the button below to scan and index all files from the configured repository path.</p>
@@ -210,7 +254,7 @@
                     </div>
                     
                     <button id="startIndexingBtn" class="btn btn-primary btn-large" onclick="startIndexing()">
-                        <i class="fas fa-sync"></i> Start Indexing
+                        <i class="fas fa-sync"></i> Start Main Indexing
                     </button>
                     
                     <div id="indexingProgress" class="indexing-progress" style="display: none;">
@@ -237,6 +281,63 @@
                             </div>
                         </div>
                         <div id="indexingErrors"></div>
+                    </div>
+                </div>
+
+                <!-- Custom Path Indexing -->
+                <div class="indexing-panel">
+                    <h2>Custom Path Indexing</h2>
+                    <div class="info-box">
+                        <i class="fas fa-folder-open"></i>
+                        <p>Index files from a custom directory path. This allows you to add files from different locations.</p>
+                    </div>
+                    
+                    <div class="custom-index-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Directory Path <span class="required">*</span></label>
+                                <input type="text" id="customPathInput" class="form-input" placeholder="e.g., C:\Projects\MyProject">
+                            </div>
+                            <div class="form-group">
+                                <label>Assign to Project</label>
+                                <select id="customPathProject" class="form-input">
+                                    <option value="">Default Project</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="startCustomIndexingBtn" class="btn btn-primary" onclick="startCustomIndexing()">
+                            <i class="fas fa-sync"></i> Index Custom Path
+                        </button>
+                    </div>
+                    
+                    <div id="customIndexingProgress" class="indexing-progress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="customProgressFill"></div>
+                        </div>
+                        <p id="customIndexingStatus">Initializing...</p>
+                    </div>
+                    
+                    <div id="customIndexingResults" class="indexing-results" style="display: none;">
+                        <h3>Custom Path Indexing Complete</h3>
+                        <div class="results-grid">
+                            <div class="result-item">
+                                <span class="result-label">Path:</span>
+                                <span class="result-value" id="customIndexedPath">-</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Files Indexed:</span>
+                                <span class="result-value" id="customFilesIndexed">0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Files Updated:</span>
+                                <span class="result-value" id="customFilesUpdated">0</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Files Skipped:</span>
+                                <span class="result-value" id="customFilesSkipped">0</span>
+                            </div>
+                        </div>
+                        <div id="customIndexingErrors"></div>
                     </div>
                 </div>
             </section>
@@ -268,14 +369,169 @@
                     </table>
                 </div>
             </section>
+
+            <!-- Backup Section -->
+            <section id="backup-section" class="content-section">
+                <div class="section-header">
+                    <h1>Backup & Restore</h1>
+                    <button class="btn btn-primary" onclick="showCreateBackupModal()">
+                        <i class="fas fa-save"></i> Create Backup
+                    </button>
+                </div>
+                
+                <div class="backup-grid">
+                    <!-- Create Backup Panel -->
+                    <div class="backup-panel">
+                        <h2>Create Backup</h2>
+                        <div class="info-box">
+                            <i class="fas fa-info-circle"></i>
+                            <p>Create a complete backup of your Codex system including database, files, and configuration.</p>
+                        </div>
+                        
+                        <div class="backup-actions">
+                            <button class="btn btn-primary btn-large" onclick="showCreateBackupModal()">
+                                <i class="fas fa-save"></i> Create New Backup
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Restore Panel -->
+                    <div class="backup-panel">
+                        <h2>Available Backups</h2>
+                        <div class="backups-list" id="backupsList">
+                            <!-- Backups will be loaded here -->
+                        </div>
+                        
+                        <div class="backup-actions">
+                            <button class="btn btn-secondary" onclick="loadBackups()">
+                                <i class="fas fa-sync"></i> Refresh List
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- System Maintenance Panel -->
+            <div class="admin-panel" id="maintenanceSection" style="display: none;">
+                <h2>System Maintenance</h2>
+                
+                <div class="maintenance-grid">
+                    <!-- File System Analysis -->
+                    <div class="maintenance-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-search"></i> System Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Analyze the system for file synchronization issues, ghost files, and orphaned records.</p>
+                            <button class="btn btn-primary" onclick="analyzeSystem()">
+                                <i class="fas fa-search"></i> Analyze System
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Auto Fix Issues -->
+                    <div class="maintenance-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-wrench"></i> Auto Fix Issues</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Automatically fix detected file synchronization issues and ghost files.</p>
+                            <button class="btn btn-warning" onclick="fixSystemIssues()">
+                                <i class="fas fa-wrench"></i> Fix All Issues
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Smart Re-indexing -->
+                    <div class="maintenance-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-sync-alt"></i> Smart Re-indexing</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Perform intelligent re-indexing that handles ghost files and edge cases.</p>
+                            <button class="btn btn-success" onclick="smartReindex()">
+                                <i class="fas fa-sync-alt"></i> Smart Re-index
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Results -->
+                    <div class="maintenance-card full-width">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clipboard-list"></i> Analysis Results</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="analysisResults" class="analysis-results">
+                                <div class="empty-state">
+                                    <i class="fas fa-info-circle"></i>
+                                    <p>Run system analysis to see results here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- Upload Files Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Upload Files</h3>
+                <button class="close-button" onclick="closeModal('uploadModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="dragDropModalArea" class="drag-drop-area">
+                    <div class="drag-drop-content">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Drag & Drop Files Here</h3>
+                        <p>or click to select files</p>
+                        <input type="file" id="modalFileInput" multiple accept=".txt,.py,.js,.html,.css,.cpp,.c,.h,.hpp,.java,.php,.rb,.go,.rs,.swift,.kt,.scala,.ino,.pde,.json,.xml,.yaml,.yml,.md,.rst,.sql,.sh,.bat,.ps1">
+                    </div>
+                </div>
+                <div class="upload-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Project <span class="required">*</span></label>
+                            <select id="modalUploadProjectSelect" class="form-input" required>
+                                <option value="">Select Project</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" id="modalUploadDescription" class="form-input" placeholder="Optional description">
+                        </div>
+                        <div class="form-group">
+                            <label>Tags</label>
+                            <input type="text" id="modalUploadTags" class="form-input" placeholder="comma, separated, tags">
+                        </div>
+                    </div>
+                </div>
+                <div id="uploadProgress" class="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="uploadProgressFill"></div>
+                    </div>
+                    <p id="uploadStatus">Uploading...</p>
+                </div>
+                <div id="uploadResults" class="upload-results" style="display: none;">
+                    <h4>Upload Complete</h4>
+                    <ul id="uploadResultsList"></ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('uploadModal')">Close</button>
+            </div>
+        </div>
     </div>
 
     <!-- Add File Modal -->
     <div id="addFileModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Add New File</h3>
+                <h3>Add File Location</h3>
                 <button class="close-button" onclick="closeModal('addFileModal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -389,6 +645,64 @@
         </div>
     </div>
 
+    <!-- Edit Project Modal -->
+    <div id="editProjectModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Edit Project</h3>
+                <button class="close-button" onclick="closeModal('editProjectModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editProjectForm" onsubmit="handleEditProject(event)">
+                <input type="hidden" id="editProjectId" name="project_id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Project Name <span class="required">*</span></label>
+                        <input type="text" id="editProjectName" name="name" required class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="editProjectDescription" name="description" class="form-input" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Update Project</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editProjectModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Tag Modal -->
+    <div id="editTagModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Edit Tag</h3>
+                <button class="close-button" onclick="closeModal('editTagModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editTagForm" onsubmit="handleEditTag(event)">
+                <input type="hidden" id="editTagId" name="tag_id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Tag Name <span class="required">*</span></label>
+                        <input type="text" id="editTagName" name="name" required class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="editTagDescription" name="description" class="form-input" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Update Tag</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editTagModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Add Tag Modal -->
     <div id="addTagModal" class="modal">
         <div class="modal-content modal-small">
@@ -415,6 +729,173 @@
                     <button type="submit" class="btn btn-primary">Create Tag</button>
                     <button type="button" class="btn btn-secondary" 
                             onclick="closeModal('addTagModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Add New User</h3>
+                <button class="close-button" onclick="closeModal('addUserModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addUserForm" onsubmit="handleAddUser(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Username <span class="required">*</span></label>
+                        <input type="text" name="username" required class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <input type="password" name="password" required class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Role <span class="required">*</span></label>
+                        <select name="role" required class="form-input">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Edit User</h3>
+                <button class="close-button" onclick="closeModal('editUserModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editUserForm" onsubmit="handleEditUser(event)">
+                <input type="hidden" id="editUserId" name="user_id">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="editUserUsername" class="form-input" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password (leave blank to keep current)</label>
+                        <input type="password" name="password" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="editUserFullName" name="full_name" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="editUserEmail" name="email" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Role <span class="required">*</span></label>
+                        <select id="editUserRole" name="role" required class="form-input">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Update User</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Backup Modal -->
+    <div id="createBackupModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Create Backup</h3>
+                <button class="close-button" onclick="closeModal('createBackupModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createBackupForm" onsubmit="handleCreateBackup(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Backup Name</label>
+                        <input type="text" name="name" class="form-input" 
+                               placeholder="Leave empty for auto-generated name">
+                    </div>
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <p>This will create a complete backup including:</p>
+                        <ul>
+                            <li>All database data (files, projects, tags, users)</li>
+                            <li>Uploaded file storage</li>
+                            <li>Configuration files</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Backup
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createBackupModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Restore Backup Modal -->
+    <div id="restoreBackupModal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Restore Backup</h3>
+                <button class="close-button" onclick="closeModal('restoreBackupModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="restoreBackupForm" onsubmit="handleRestoreBackup(event)">
+                <input type="hidden" id="restoreBackupName" name="backup_name">
+                <div class="modal-body">
+                    <div class="warning-box">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h4>WARNING: This action cannot be undone!</h4>
+                        <p>Restoring will completely replace all current data with the backup data:</p>
+                        <ul>
+                            <li>All current files, projects, tags, and users will be replaced</li>
+                            <li>File storage will be replaced</li>
+                            <li>The application will need to be restarted</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="backup-info" id="restoreBackupInfo">
+                        <!-- Backup info will be populated here -->
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="confirmRestore" required>
+                            I understand that this will replace all current data
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-upload"></i> Restore Backup
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('restoreBackupModal')">Cancel</button>
                 </div>
             </form>
         </div>

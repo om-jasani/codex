@@ -3,13 +3,183 @@
 const API_BASE = '/api';
 let currentSection = 'dashboard';
 let currentUser = null;
+let currentPage = 1;
+let dragDropArea = null;
 
 // Initialize admin panel
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminAuth();
     setupEventListeners();
     showSection('dashboard');
+    initializeDragDrop();
 });
+
+// Initialize drag and drop functionality
+function initializeDragDrop() {
+    // Initialize drag and drop for main area
+    const dragDropArea = document.getElementById('dragDropArea');
+    if (dragDropArea) {
+        setupDragDropEvents(dragDropArea, 'fileInput');
+    }
+
+    // Initialize drag and drop for modal
+    const dragDropModalArea = document.getElementById('dragDropModalArea');
+    if (dragDropModalArea) {
+        setupDragDropEvents(dragDropModalArea, 'modalFileInput');
+    }
+}
+
+function setupDragDropEvents(area, inputId) {
+    const fileInput = document.getElementById(inputId);
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        area.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        area.addEventListener(eventName, () => area.classList.add('drag-over'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        area.addEventListener(eventName, () => area.classList.remove('drag-over'), false);
+    });
+
+    area.addEventListener('drop', handleDrop, false);
+    
+    // Only trigger file input when clicking on the main drag area, not on form elements
+    area.addEventListener('click', function(e) {
+        // Don't trigger file input if clicking on form elements
+        if (e.target.tagName === 'SELECT' || 
+            e.target.tagName === 'INPUT' || 
+            e.target.tagName === 'LABEL' ||
+            e.target.closest('.upload-form') ||
+            e.target.closest('.form-group')) {
+            return;
+        }
+        fileInput.click();
+    });
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files, inputId.includes('modal'));
+    }
+
+    // File input change handler
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            handleFiles(e.target.files, inputId.includes('modal'));
+        });
+    }
+}
+
+// Handle file uploads
+async function handleFiles(files, isModal = false) {
+    const projectSelectId = isModal ? 'modalUploadProjectSelect' : 'uploadProjectSelect';
+    const descriptionId = isModal ? 'modalUploadDescription' : 'uploadDescription';
+    const tagsId = isModal ? 'modalUploadTags' : 'uploadTags';
+    
+    const projectSelect = document.getElementById(projectSelectId);
+    const descriptionInput = document.getElementById(descriptionId);
+    const tagsInput = document.getElementById(tagsId);
+
+    if (!projectSelect.value) {
+        showMessage('Please select a project first', 'error');
+        return;
+    }
+
+    const progressContainer = isModal ? document.getElementById('uploadProgress') : null;
+    const resultsContainer = isModal ? document.getElementById('uploadResults') : null;
+    const resultsList = isModal ? document.getElementById('uploadResultsList') : null;
+    
+    if (progressContainer) {
+        progressContainer.style.display = 'block';
+        if (resultsContainer) resultsContainer.style.display = 'none';
+    }
+
+    const results = [];
+    const totalFiles = files.length;
+    let processedFiles = 0;
+
+    for (let file of files) {
+        try {
+            const result = await uploadSingleFile(file, {
+                project_id: projectSelect.value,
+                description: descriptionInput.value,
+                tags: tagsInput.value
+            });
+            results.push({ file: file.name, success: true, message: 'Uploaded successfully' });
+        } catch (error) {
+            results.push({ file: file.name, success: false, message: error.message });
+        }
+        
+        processedFiles++;
+        if (progressContainer) {
+            const progress = (processedFiles / totalFiles) * 100;
+            const progressFill = document.getElementById('uploadProgressFill');
+            const status = document.getElementById('uploadStatus');
+            if (progressFill) progressFill.style.width = progress + '%';
+            if (status) status.textContent = `Processing ${processedFiles}/${totalFiles} files...`;
+        }
+    }
+
+    // Show results
+    if (progressContainer) progressContainer.style.display = 'none';
+    
+    if (resultsContainer && resultsList) {
+        resultsContainer.style.display = 'block';
+        resultsList.innerHTML = results.map(result => 
+            `<li class="${result.success ? 'success' : 'error'}">
+                <i class="fas fa-${result.success ? 'check' : 'times'}"></i>
+                ${result.file}: ${result.message}
+            </li>`
+        ).join('');
+    }
+
+    // Clear form
+    const fileInput = document.getElementById(isModal ? 'modalFileInput' : 'fileInput');
+    if (fileInput) fileInput.value = '';
+    if (descriptionInput) descriptionInput.value = '';
+    if (tagsInput) tagsInput.value = '';
+    
+    // Refresh files list
+    loadFiles();
+}
+
+// Upload single file
+async function uploadSingleFile(file, metadata) {
+    return new Promise(async (resolve, reject) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('project_id', metadata.project_id);
+        formData.append('description', metadata.description);
+        formData.append('tags', metadata.tags);
+
+        try {
+            const response = await fetch(`${API_BASE}/admin/files/upload`, {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                resolve(result);
+            } else {
+                reject(new Error(result.error || 'Upload failed'));
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            reject(error);
+        }
+    });
+}
 
 // Check admin authentication
 async function checkAdminAuth() {
@@ -63,6 +233,9 @@ function setupEventListeners() {
             closeAllModals();
         }
     });
+    
+    // Load projects for custom indexing
+    loadProjectsForSelect('customPathProject');
 }
 
 // Show section
@@ -98,6 +271,12 @@ function showSection(section) {
             break;
         case 'files':
             loadFiles();
+            // Show upload area if it exists
+            const dragDropArea = document.getElementById('dragDropArea');
+            if (dragDropArea) {
+                loadProjectsForSelect('uploadProjectSelect');
+                dragDropArea.style.display = 'block';
+            }
             break;
         case 'projects':
             loadProjects();
@@ -107,6 +286,9 @@ function showSection(section) {
             break;
         case 'users':
             loadUsers();
+            break;
+        case 'backup':
+            loadBackups();
             break;
     }
 }
@@ -402,6 +584,92 @@ async function handleAddProject(event) {
     }
 }
 
+// Edit project
+async function editProject(projectId) {
+    try {
+        const response = await fetch(`${API_BASE}/admin/projects`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error('Failed to load projects');
+        
+        const projects = await response.json();
+        const project = projects.find(p => p.id === projectId);
+        
+        if (!project) {
+            showMessage('Project not found', 'error');
+            return;
+        }
+        
+        // Populate edit form
+        document.getElementById('editProjectId').value = project.id;
+        document.getElementById('editProjectName').value = project.name;
+        document.getElementById('editProjectDescription').value = project.description || '';
+        
+        // Show modal
+        document.getElementById('editProjectModal').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Failed to load project:', error);
+        showMessage('Failed to load project details', 'error');
+    }
+}
+
+// Handle edit project form
+async function handleEditProject(event) {
+    event.preventDefault();
+    
+    const projectId = document.getElementById('editProjectId').value;
+    const formData = new FormData(event.target);
+    
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description')
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/projects/${projectId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessage('Project updated successfully', 'success');
+            closeModal('editProjectModal');
+            loadProjects();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Failed to update project', 'error');
+    }
+}
+
+// Delete project
+async function deleteProject(projectId) {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/projects/${projectId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessage('Project deleted successfully', 'success');
+            loadProjects();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Error deleting project', 'error');
+    }
+}
+
 // Load tags
 async function loadTags() {
     try {
@@ -479,6 +747,92 @@ async function handleAddTag(event) {
     }
 }
 
+// Edit tag
+async function editTag(tagId) {
+    try {
+        const response = await fetch(`${API_BASE}/admin/tags`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error('Failed to load tags');
+        
+        const tags = await response.json();
+        const tag = tags.find(t => t.id === tagId);
+        
+        if (!tag) {
+            showMessage('Tag not found', 'error');
+            return;
+        }
+        
+        // Populate edit form
+        document.getElementById('editTagId').value = tag.id;
+        document.getElementById('editTagName').value = tag.name;
+        document.getElementById('editTagDescription').value = tag.description || '';
+        
+        // Show modal
+        document.getElementById('editTagModal').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Failed to load tag:', error);
+        showMessage('Failed to load tag details', 'error');
+    }
+}
+
+// Handle edit tag form
+async function handleEditTag(event) {
+    event.preventDefault();
+    
+    const tagId = document.getElementById('editTagId').value;
+    const formData = new FormData(event.target);
+    
+    const data = {
+        name: formData.get('name'),
+        description: formData.get('description')
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/tags/${tagId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessage('Tag updated successfully', 'success');
+            closeModal('editTagModal');
+            loadTags();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Failed to update tag', 'error');
+    }
+}
+
+// Delete tag
+async function deleteTag(tagId) {
+    if (!confirm('Are you sure you want to delete this tag? This will remove it from all files.')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/tags/${tagId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessage('Tag deleted successfully', 'success');
+            loadTags();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Error deleting tag', 'error');
+    }
+}
+
 // Start indexing
 async function startIndexing() {
     const progressDiv = document.getElementById('indexingProgress');
@@ -551,6 +905,101 @@ async function startIndexing() {
     }
 }
 
+// Start custom path indexing
+async function startCustomIndexing() {
+    const pathInput = document.getElementById('customPathInput');
+    const projectSelect = document.getElementById('customPathProject');
+    const btn = document.getElementById('startCustomIndexingBtn');
+    const progressDiv = document.getElementById('customIndexingProgress');
+    const resultsDiv = document.getElementById('customIndexingResults');
+    const progressFill = document.getElementById('customProgressFill');
+    const statusText = document.getElementById('customIndexingStatus');
+    
+    if (!pathInput.value.trim()) {
+        showMessage('Please enter a directory path', 'error');
+        return;
+    }
+    
+    btn.disabled = true;
+    progressDiv.style.display = 'block';
+    resultsDiv.style.display = 'none';
+    
+    const data = {
+        path: pathInput.value.trim(),
+        project_id: projectSelect.value ? parseInt(projectSelect.value) : null
+    };
+    
+    try {
+        // Simulate progress
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressFill.style.width = progress + '%';
+            statusText.textContent = `Indexing custom path... ${Math.round(progress)}%`;
+        }, 500);
+        
+        const response = await fetch(`${API_BASE}/admin/index/custom`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            credentials: 'include'
+        });
+        
+        // Complete progress
+        clearInterval(progressInterval);
+        progressFill.style.width = '100%';
+        statusText.textContent = 'Custom indexing complete!';
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Custom indexing failed');
+        }
+        
+        // Show results
+        setTimeout(() => {
+            document.getElementById('customIndexedPath').textContent = result.path || pathInput.value;
+            document.getElementById('customFilesIndexed').textContent = result.files_indexed || 0;
+            document.getElementById('customFilesUpdated').textContent = result.files_updated || 0;
+            document.getElementById('customFilesSkipped').textContent = result.files_skipped || 0;
+            
+            const errorsDiv = document.getElementById('customIndexingErrors');
+            if (result.errors && result.errors.length > 0) {
+                errorsDiv.innerHTML = '<h4>Errors:</h4><ul class="error-list">' + 
+                    result.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('') + '</ul>';
+            } else {
+                errorsDiv.innerHTML = '';
+            }
+            
+            progressDiv.style.display = 'none';
+            resultsDiv.style.display = 'block';
+            
+            showMessage('Custom path indexing completed successfully', 'success');
+            
+            // Clear the path input
+            pathInput.value = '';
+            
+            // Reload files and stats
+            loadFiles();
+            loadDashboardStats();
+        }, 1000);
+        
+    } catch (error) {
+        showMessage('Custom indexing failed: ' + error.message, 'error');
+        progressDiv.style.display = 'none';
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// Show upload modal
+function showUploadModal() {
+    // Load projects for dropdown
+    loadProjectsForSelect('modalUploadProjectSelect');
+    document.getElementById('uploadModal').style.display = 'block';
+}
+
 // Add file manually
 function showAddFileModal() {
     // Load projects for dropdown
@@ -591,6 +1040,640 @@ async function handleAddFile(event) {
         }
     } catch (error) {
         showMessage('Failed to add file', 'error');
+    }
+}
+
+// Load users
+async function loadUsers() {
+    try {
+        showLoading(true);
+        
+        const response = await fetch(`${API_BASE}/admin/users`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error('Failed to load users');
+        
+        const users = await response.json();
+        const tbody = document.getElementById('usersTableBody');
+        
+        tbody.innerHTML = users.map(user => `
+            <tr>
+                <td>${escapeHtml(user.username)}</td>
+                <td>${escapeHtml(user.full_name || '-')}</td>
+                <td>${escapeHtml(user.email || '-')}</td>
+                <td>
+                    <span class="badge badge-${user.role === 'admin' ? 'primary' : 'secondary'}">
+                        ${escapeHtml(user.role)}
+                    </span>
+                </td>
+                <td>${user.last_login ? formatDate(user.last_login) : 'Never'}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn btn-icon btn-edit" onclick="editUser(${user.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        ${user.id !== currentUser.id ? `
+                        <button class="btn btn-icon btn-delete" onclick="deleteUser(${user.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Failed to load users:', error);
+        showMessage('Failed to load users', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+// Show add user modal
+function showAddUserModal() {
+    document.getElementById('addUserModal').style.display = 'block';
+}
+
+// Handle add user form
+async function handleAddUser(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const data = {
+        username: formData.get('username'),
+        password: formData.get('password'),
+        full_name: formData.get('full_name'),
+        email: formData.get('email'),
+        role: formData.get('role')
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessage('User created successfully', 'success');
+            closeModal('addUserModal');
+            form.reset();
+            loadUsers();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Failed to create user', 'error');
+    }
+}
+
+// Edit user
+async function editUser(userId) {
+    try {
+        const response = await fetch(`${API_BASE}/admin/users`, {
+            credentials: 'include'
+        });
+        
+        if (!response.ok) throw new Error('Failed to load users');
+        
+        const users = await response.json();
+        const user = users.find(u => u.id === userId);
+        
+        if (!user) {
+            showMessage('User not found', 'error');
+            return;
+        }
+        
+        // Populate edit form
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editUserUsername').value = user.username;
+        document.getElementById('editUserFullName').value = user.full_name || '';
+        document.getElementById('editUserEmail').value = user.email || '';
+        document.getElementById('editUserRole').value = user.role;
+        
+        // Show modal
+        document.getElementById('editUserModal').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Failed to load user:', error);
+        showMessage('Failed to load user details', 'error');
+    }
+}
+
+// Handle edit user form
+async function handleEditUser(event) {
+    event.preventDefault();
+    
+    const userId = document.getElementById('editUserId').value;
+    const formData = new FormData(event.target);
+    
+    const data = {
+        full_name: formData.get('full_name'),
+        email: formData.get('email'),
+        role: formData.get('role')
+    };
+    
+    // Only include password if provided
+    const password = formData.get('password');
+    if (password) {
+        data.password = password;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessage('User updated successfully', 'success');
+            closeModal('editUserModal');
+            loadUsers();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Failed to update user', 'error');
+    }
+}
+
+// Delete user
+async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showMessage('User deleted successfully', 'success');
+            loadUsers();
+        } else {
+            const error = await response.json();
+            showMessage('Error: ' + error.error, 'error');
+        }
+    } catch (error) {
+        showMessage('Error deleting user', 'error');
+    }
+}
+
+// Backup and Restore Functions
+async function loadBackups() {
+    try {
+        const response = await fetch('/api/admin/backups');
+        if (!response.ok) throw new Error('Failed to load backups');
+        
+        const data = await response.json();
+        const backupsList = document.getElementById('backupsList');
+        
+        if (!data.backups || data.backups.length === 0) {
+            backupsList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-archive"></i>
+                    <p>No backups found</p>
+                    <small>Create your first backup to get started</small>
+                </div>
+            `;
+            return;
+        }
+        
+        backupsList.innerHTML = data.backups.map(backup => `
+            <div class="backup-item">
+                <div class="backup-info">
+                    <h4>${backup.name}</h4>
+                    <div class="backup-details">
+                        <span class="backup-date">
+                            <i class="fas fa-calendar"></i>
+                            ${new Date(backup.created_at).toLocaleString()}
+                        </span>
+                        <span class="backup-size">
+                            <i class="fas fa-hdd"></i>
+                            ${backup.size_mb} MB
+                        </span>
+                    </div>
+                    <div class="backup-stats">
+                        ${backup.statistics.files_count ? `<span class="stat-badge">📄 ${backup.statistics.files_count} files</span>` : ''}
+                        ${backup.statistics.projects_count ? `<span class="stat-badge">📁 ${backup.statistics.projects_count} projects</span>` : ''}
+                        ${backup.statistics.users_count ? `<span class="stat-badge">👥 ${backup.statistics.users_count} users</span>` : ''}
+                    </div>
+                </div>
+                <div class="backup-actions">
+                    <button class="btn btn-sm btn-primary" onclick="downloadBackup('${backup.name}')" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="showRestoreBackupModal('${backup.name}')" title="Restore">
+                        <i class="fas fa-upload"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteBackup('${backup.name}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Error loading backups:', error);
+        showNotification('Failed to load backups', 'error');
+    }
+}
+
+function showCreateBackupModal() {
+    document.getElementById('createBackupForm').reset();
+    document.getElementById('createBackupModal').style.display = 'block';
+}
+
+async function handleCreateBackup(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const data = {
+        name: formData.get('name') || null
+    };
+    
+    try {
+        showLoading();
+        
+        const response = await fetch('/api/admin/backup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification(`Backup created successfully: ${result.backup_name} (${result.size_mb} MB)`, 'success');
+            closeModal('createBackupModal');
+            loadBackups(); // Refresh the list
+        } else {
+            showNotification(`Backup failed: ${result.message}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error creating backup:', error);
+        showNotification('Failed to create backup', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function showRestoreBackupModal(backupName) {
+    document.getElementById('restoreBackupName').value = backupName;
+    document.getElementById('restoreBackupInfo').innerHTML = `
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <p><strong>Backup:</strong> ${backupName}</p>
+        </div>
+    `;
+    document.getElementById('confirmRestore').checked = false;
+    document.getElementById('restoreBackupModal').style.display = 'block';
+}
+
+async function handleRestoreBackup(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const data = {
+        backup_name: formData.get('backup_name')
+    };
+    
+    if (!document.getElementById('confirmRestore').checked) {
+        showNotification('Please confirm that you understand this action', 'warning');
+        return;
+    }
+    
+    try {
+        showLoading();
+        
+        const response = await fetch('/api/admin/restore', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification(`${result.message}`, 'success');
+            closeModal('restoreBackupModal');
+            
+            // Show restart message
+            setTimeout(() => {
+                if (confirm('Restore completed successfully! The application needs to be restarted. Restart now?')) {
+                    window.location.reload();
+                }
+            }, 2000);
+        } else {
+            showNotification(`Restore failed: ${result.message}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error restoring backup:', error);
+        showNotification('Failed to restore backup', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function downloadBackup(backupName) {
+    try {
+        const response = await fetch(`/api/admin/backup/${backupName}/download`);
+        
+        if (!response.ok) {
+            throw new Error('Download failed');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${backupName}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        showNotification('Backup downloaded successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error downloading backup:', error);
+        showNotification('Failed to download backup', 'error');
+    }
+}
+
+async function deleteBackup(backupName) {
+    if (!confirm(`Are you sure you want to delete the backup "${backupName}"? This action cannot be undone.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/admin/backup/${backupName}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('Backup deleted successfully', 'success');
+            loadBackups(); // Refresh the list
+        } else {
+            showNotification(`Delete failed: ${result.message}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error deleting backup:', error);
+        showNotification('Failed to delete backup', 'error');
+    }
+}
+
+// System Maintenance Functions
+
+async function analyzeSystem() {
+    try {
+        showLoading();
+        showMessage('Analyzing system...', 'info');
+        
+        const response = await fetch('/api/admin/system/analyze', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayAnalysisResults(result);
+            showMessage(`Analysis complete. Found ${result.issues_found} issues.`, 
+                       result.issues_found > 0 ? 'warning' : 'success');
+        } else {
+            showMessage(`Analysis failed: ${result.error}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error analyzing system:', error);
+        showMessage('Failed to analyze system', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function fixSystemIssues() {
+    if (!confirm('This will automatically fix all detected issues. Are you sure?')) {
+        return;
+    }
+    
+    try {
+        showLoading();
+        showMessage('Fixing system issues...', 'info');
+        
+        const response = await fetch('/api/admin/system/fix', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayFixResults(result);
+            showMessage(`Fix complete. Applied ${result.actions_taken} fixes.`, 'success');
+        } else {
+            showMessage(`Fix failed: ${result.error}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error fixing system issues:', error);
+        showMessage('Failed to fix system issues', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function smartReindex() {
+    if (!confirm('This will perform smart re-indexing of all files. Continue?')) {
+        return;
+    }
+    
+    try {
+        showLoading();
+        showMessage('Performing smart re-indexing...', 'info');
+        
+        const response = await fetch('/api/admin/system/smart-reindex', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({}),
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            displayReindexResults(result);
+            showMessage('Smart re-indexing completed successfully', 'success');
+        } else {
+            showMessage(`Re-indexing failed: ${result.error}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error during smart re-indexing:', error);
+        showMessage('Failed to perform smart re-indexing', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function displayAnalysisResults(result) {
+    const container = document.getElementById('analysisResults');
+    
+    if (result.issues_found === 0) {
+        container.innerHTML = `
+            <div class="results-summary">
+                <div class="summary-stat">
+                    <div class="number">✅</div>
+                    <div class="label">System Healthy</div>
+                </div>
+            </div>
+            <div class="issue-item success">
+                <i class="fas fa-check-circle"></i>
+                <span>No issues found. Your system is in perfect sync!</span>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="results-summary">
+            <div class="summary-stat">
+                <div class="number">${result.issues_found}</div>
+                <div class="label">Issues Found</div>
+            </div>
+        </div>
+        <h4>Issues Detected:</h4>
+    `;
+    
+    result.issues.forEach(issue => {
+        html += `
+            <div class="issue-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>${escapeHtml(issue)}</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function displayFixResults(result) {
+    const container = document.getElementById('analysisResults');
+    
+    let html = `
+        <div class="results-summary">
+            <div class="summary-stat">
+                <div class="number">${result.issues_found}</div>
+                <div class="label">Issues Found</div>
+            </div>
+            <div class="summary-stat">
+                <div class="number">${result.actions_taken}</div>
+                <div class="label">Fixes Applied</div>
+            </div>
+        </div>
+    `;
+    
+    if (result.actions_taken > 0) {
+        html += `<h4>Actions Taken:</h4>`;
+        result.actions.forEach(action => {
+            html += `
+                <div class="action-item">
+                    <i class="fas fa-check"></i>
+                    <span>${escapeHtml(action)}</span>
+                </div>
+            `;
+        });
+    }
+    
+    container.innerHTML = html;
+}
+
+function displayReindexResults(result) {
+    const container = document.getElementById('analysisResults');
+    
+    const html = `
+        <div class="results-summary">
+            <div class="summary-stat">
+                <div class="number">${result.files_indexed}</div>
+                <div class="label">New Files</div>
+            </div>
+            <div class="summary-stat">
+                <div class="number">${result.files_updated}</div>
+                <div class="label">Updated Files</div>
+            </div>
+            <div class="summary-stat">
+                <div class="number">${result.ghost_files_reactivated}</div>
+                <div class="label">Ghost Files Fixed</div>
+            </div>
+            <div class="summary-stat">
+                <div class="number">${result.files_skipped}</div>
+                <div class="label">Skipped</div>
+            </div>
+        </div>
+        
+        ${result.ghost_files_reactivated > 0 ? `
+            <div class="action-item">
+                <i class="fas fa-magic"></i>
+                <span>Successfully reactivated ${result.ghost_files_reactivated} ghost files!</span>
+            </div>
+        ` : ''}
+        
+        ${result.errors.length > 0 ? `
+            <h4>Errors:</h4>
+            ${result.errors.slice(0, 5).map(error => `
+                <div class="issue-item error">
+                    <i class="fas fa-times-circle"></i>
+                    <span>${escapeHtml(error)}</span>
+                </div>
+            `).join('')}
+        ` : ''}
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Enhanced file deletion with options
+async function deleteFile(fileId, deleteFromDisk = false) {
+    const confirmMessage = deleteFromDisk ? 
+        'Are you sure you want to delete this file from both database and disk? This action cannot be undone.' :
+        'Are you sure you want to delete this file from the database? (File will remain on disk)';
+        
+    if (!confirm(confirmMessage)) return;
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/files/${fileId}`, {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ delete_from_disk: deleteFromDisk }),
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showMessage(result.message, 'success');
+            loadFiles();
+        } else {
+            showMessage(`Error: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        showMessage('Error deleting file', 'error');
     }
 }
 

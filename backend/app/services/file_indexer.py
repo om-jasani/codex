@@ -14,7 +14,10 @@ from flask import current_app
 
 class FileIndexer:
     def __init__(self):
-        self.allowed_extensions = os.getenv('ALLOWED_EXTENSIONS', '').split(',')
+        # Get allowed extensions from environment or use default list
+        allowed_ext_str = os.getenv('ALLOWED_EXTENSIONS', '.py,.js,.html,.css,.cpp,.c,.h,.hpp,.java,.php,.rb,.go,.rs,.swift,.kt,.scala,.ino,.pde,.json,.xml,.yaml,.yml,.md,.rst,.sql,.sh,.bat,.ps1,.dockerfile,.makefile,.txt')
+        self.allowed_extensions = [ext.strip() for ext in allowed_ext_str.split(',') if ext.strip()]
+        
         self.max_file_size = self._parse_size(os.getenv('MAX_FILE_SIZE', '50MB'))
         self.indexed_count = 0
         self.updated_count = 0
@@ -80,21 +83,25 @@ class FileIndexer:
         if os.path.basename(filepath).startswith('.'):
             return False
         
-        # Check allowed extensions first
+        # Check allowed extensions
         if self.allowed_extensions:
             ext = Path(filepath).suffix.lower()
             if ext not in self.allowed_extensions:
                 return False
         
         # Skip binary files (but allow files with extensions in our allowed list)
-        mime_type = mimetypes.guess_type(filepath)[0]
-        if mime_type and not (mime_type.startswith('text/') or 
-                             mime_type in ['application/javascript', 'application/json', 
-                                          'application/xml', 'application/sql']):
-            ext = Path(filepath).suffix.lower()
-            # Allow if extension is explicitly in our allowed list
-            if ext not in self.allowed_extensions:
-                return False
+        try:
+            mime_type = mimetypes.guess_type(filepath)[0]
+            if mime_type and not (mime_type.startswith('text/') or 
+                                 mime_type in ['application/javascript', 'application/json', 
+                                              'application/xml', 'application/sql']):
+                ext = Path(filepath).suffix.lower()
+                # Allow if extension is explicitly in our allowed list
+                if ext not in self.allowed_extensions:
+                    return False
+        except:
+            # If mime type detection fails, rely on extension
+            pass
         
         return True
     
@@ -187,7 +194,7 @@ class FileIndexer:
         # Remove duplicates
         return list(set(tags))
     
-    def index_file(self, filepath, base_path):
+    def index_file(self, filepath, base_path, project_id=None):
         """Index a single file"""
         try:
             if not self._should_index_file(filepath):
@@ -200,35 +207,55 @@ class FileIndexer:
                 self.skipped_count += 1
                 return False
             
-            # Extract project name
-            project_name = self._extract_project_name(filepath, base_path)
+            # Use provided project_id or extract project name
+            if project_id:
+                project = Project.query.get(project_id)
+                if not project:
+                    self.errors.append(f"Project with ID {project_id} not found")
+                    return False
+            else:
+                # Extract project name
+                project_name = self._extract_project_name(filepath, base_path)
+                
+                # Get or create project
+                project = Project.query.filter_by(name=project_name).first()
+                if not project:
+                    project = Project(
+                        name=project_name,
+                        description=f"Auto-created project for {project_name}"
+                    )
+                    db.session.add(project)
+                    db.session.flush()
             
-            # Get or create project
-            project = Project.query.filter_by(name=project_name).first()
-            if not project:
-                project = Project(
-                    name=project_name,
-                    description=f"Auto-created project for {project_name}"
-                )
-                db.session.add(project)
-                db.session.flush()
-            
-            # Check if file already exists
+            # Check if file already exists (active or inactive)
             existing = File.query.filter_by(filepath=filepath).first()
             
             if existing:
-                # Update existing file if it has changed
-                if existing.content_hash != file_info['content_hash']:
+                if not existing.is_active:
+                    # This is a ghost file (deleted but exists on disk) - reactivate it!
+                    existing.is_active = True
                     existing.size = file_info['size']
                     existing.line_count = file_info['line_count']
                     existing.modified_date = file_info['modified_date']
                     existing.content_hash = file_info['content_hash']
                     existing.indexed_date = datetime.utcnow()
+                    existing.project_id = project.id
                     self.updated_count += 1
-                    print(f"Updated: {filepath}")
+                    print(f"👻 Reactivated ghost file: {filepath}")
+                    return True
                 else:
-                    print(f"Already indexed (no changes): {filepath}")
-                return True
+                    # File is active, check if it needs updating
+                    if existing.content_hash != file_info['content_hash']:
+                        existing.size = file_info['size']
+                        existing.line_count = file_info['line_count']
+                        existing.modified_date = file_info['modified_date']
+                        existing.content_hash = file_info['content_hash']
+                        existing.indexed_date = datetime.utcnow()
+                        self.updated_count += 1
+                        print(f"Updated: {filepath}")
+                    else:
+                        print(f"Already indexed (no changes): {filepath}")
+                    return True
             
             # Create new file record
             filename = os.path.basename(filepath)
@@ -269,7 +296,7 @@ class FileIndexer:
             self.errors.append(f"Error indexing {filepath}: {str(e)}")
             return False
     
-    def index_directory(self, directory_path):
+    def index_directory(self, directory_path, project_id=None):
         """Recursively index all files in a directory"""
         self.indexed_count = 0
         self.updated_count = 0
@@ -299,7 +326,7 @@ class FileIndexer:
                     
                     filepath = os.path.join(root, file)
                     try:
-                        self.index_file(filepath, directory_path)
+                        self.index_file(filepath, directory_path, project_id)
                     except Exception as e:
                         self.errors.append(f"Error indexing {filepath}: {str(e)}")
                 

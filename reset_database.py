@@ -18,7 +18,7 @@ from werkzeug.security import generate_password_hash
 
 def reset_database():
     """Reset the entire database"""
-    print("🔄 Resetting Codex Database...")
+    print("🔄 Resetting DC Codex Database...")
     print("=" * 50)
     
     app = create_app()
@@ -98,7 +98,7 @@ def clean_file_storage():
         os.makedirs(file_storage_path, exist_ok=True)
 
 def main():
-    print("🔄 Codex Complete Reset")
+    print("🔄 DC Codex Complete Reset")
     print("=" * 50)
     print("This will:")
     print("- Delete ALL data from the database")

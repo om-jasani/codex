@@ -1,5 +1,5 @@
 """
-Codex - Internal Code Search System
+DC Codex - Internal Code Search System
 Complete Backend Application with All Features
 """
 

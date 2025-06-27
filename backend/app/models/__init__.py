@@ -1,5 +1,5 @@
 """
-Database Models for Codex
+Database Models for DC Codex
 """
 
 from datetime import datetime

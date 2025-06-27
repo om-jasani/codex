@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Codex Maintenance Utility
+DC Codex Maintenance Utility
 Provides quick maintenance operations
 """
 

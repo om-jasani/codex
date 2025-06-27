@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Codex Database Setup Script
+DC Codex Database Setup Script
 Initializes the PostgreSQL database and creates the admin user
 """
 

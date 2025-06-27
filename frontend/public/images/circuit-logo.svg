@@ -1,0 +1,46 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <g fill="currentColor">
+    <!-- Circuit paths -->
+    <path d="M4 8h4v2H4z"/>
+    <path d="M8 6v4h2V6z"/>
+    <path d="M10 8h6v2h-6z"/>
+    <path d="M16 6v4h2V6z"/>
+    <path d="M18 8h6v2h-6z"/>
+    <path d="M24 6v4h2V6z"/>
+    <path d="M26 8h2v2h-2z"/>
+    
+    <!-- Horizontal connections -->
+    <path d="M4 14h8v2h-8z"/>
+    <path d="M14 14h4v2h-4z"/>
+    <path d="M20 14h8v2h-8z"/>
+    
+    <!-- Vertical connections -->
+    <path d="M6 10v4h2v-4z"/>
+    <path d="M12 10v4h2v-4z"/>
+    <path d="M18 10v4h2v-4z"/>
+    <path d="M24 10v4h2v-4z"/>
+    
+    <!-- Circuit nodes (small squares) -->
+    <rect x="5" y="13" width="3" height="3"/>
+    <rect x="13" y="13" width="3" height="3"/>
+    <rect x="21" y="13" width="3" height="3"/>
+    
+    <!-- Bottom circuit layer -->
+    <path d="M4 20h6v2H4z"/>
+    <path d="M12 20h8v2h-8z"/>
+    <path d="M22 20h6v2h-6z"/>
+    
+    <!-- Vertical connections bottom -->
+    <path d="M8 16v4h2v-4z"/>
+    <path d="M16 16v4h2v-4z"/>
+    <path d="M24 16v4h2v-4z"/>
+    
+    <!-- Bottom nodes -->
+    <rect x="7" y="23" width="3" height="3"/>
+    <rect x="15" y="23" width="3" height="3"/>
+    <rect x="23" y="23" width="3" height="3"/>
+    
+    <!-- Final connections -->
+    <path d="M8 26h16v2H8z"/>
+  </g>
+</svg>

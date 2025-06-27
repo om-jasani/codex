@@ -1,4 +1,4 @@
-# Codex Quick Start Guide
+# DC Codex Quick Start Guide
 
 ## 🚀 First Time Setup (5 minutes)
 
@@ -16,12 +16,12 @@
    ```
    - Enter admin username and password when prompted
 
-4. **Start Codex**
+4. **Start DC Codex**
    ```
    run.ps1
    ```
 
-5. **Access Codex**
+5. **Access DC Codex**
    - Open browser: http://localhost:5000
    - Login with admin credentials
 

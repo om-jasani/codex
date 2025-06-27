@@ -1,6 +1,6 @@
-# Codex - Internal Code Search System
+# DC Codex - Internal Code Search System
 
-A powerful, Google-like search system for your company's internal code repositories. Codex helps developers quickly find and reuse existing code from previous projects, significantly accelerating development.
+A powerful, Google-like search system for your company's internal code repositories. DC Codex helps developers quickly find and reuse existing code from previous projects, significantly accelerating development.
 
 ## 🚀 Features
 

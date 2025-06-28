@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DC Codex - Code Repository Browser</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/browse-column.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="browse-container">
+        <!-- Header -->
+        <div class="browse-header">
+            <h1>
+                <i class="fas fa-folder-tree"></i>
+                Code Repository Browser
+            </h1>
+            <div class="header-controls">
+                <div class="auth-status" id="authStatus">
+                    <i class="fas fa-user"></i>
+                    <span id="authStatusText">Checking...</span>
+                </div>
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-search"></i>
+                    Search
+                </a>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-container">
+            <div class="breadcrumb" id="breadcrumb">
+                <!-- Breadcrumb items will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Column Navigation -->
+        <div class="column-navigation" id="columnNavigation">
+            <!-- Columns will be dynamically generated -->
+        </div>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div class="file-preview-modal" id="filePreviewModal">
+        <div class="file-preview-modal-content">
+            <div class="file-preview-modal-header">
+                <div class="file-preview-modal-title">
+                    <i class="file-icon fas fa-file" id="modalFileIcon"></i>
+                    <h2 id="modalFileName">File Preview</h2>
+                </div>
+                <div class="file-preview-modal-actions">
+                    <button class="modal-btn modal-btn-download" id="modalDownloadBtn">
+                        <i class="fas fa-download"></i>
+                        Download
+                    </button>
+                    <button class="modal-btn modal-btn-close" id="modalCloseBtn">
+                        <i class="fas fa-times"></i>
+                        Close
+                    </button>
+                </div>
+            </div>
+            <div class="file-preview-modal-meta" id="modalFileMeta">
+                <!-- File metadata will be populated here -->
+            </div>
+            <div class="file-preview-modal-body" id="modalFileBody">
+                <!-- File content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Breadcrumb Navigation -->
+            <div class="breadcrumb-container">
+                <nav class="breadcrumb">
+                    <span class="breadcrumb-item root" onclick="navigateToRoot()">
+                        <i class="fas fa-home"></i>
+                        Repository Root
+                    </span>
+                    <div id="breadcrumbPath"></div>
+                </nav>
+                
+                <!-- Search in Current Location -->
+                <div class="location-search">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="locationSearchInput" class="search-input" 
+                               placeholder="Search in current location..." 
+                               autocomplete="off">
+                        <button class="search-button" onclick="searchInLocation()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Repository Browser -->
+            <div class="repository-browser">
+                <!-- Sidebar with folder tree -->
+                <div class="sidebar" id="folderSidebar">
+                    <div class="sidebar-header">
+                        <h3>
+                            <i class="fas fa-folder-tree"></i>
+                            Folder Structure
+                        </h3>
+                        <button class="btn-refresh" onclick="refreshFolderTree()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="folder-tree" id="folderTree">
+                        <div class="loading-tree">
+                            <div class="spinner"></div>
+                            <p>Loading folder structure...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main content area -->
+                <div class="content-area">
+                    <!-- Content Header -->
+                    <div class="content-header">
+                        <div class="location-info">
+                            <h2 id="currentLocationTitle">
+                                <i class="fas fa-folder-open"></i>
+                                Repository Root
+                            </h2>
+                            <p id="currentLocationPath" class="location-path"></p>
+                        </div>
+                        
+                        <div class="view-controls">
+                            <div class="view-mode">
+                                <button class="view-btn active" data-view="grid" onclick="setViewMode('grid')" title="Grid View">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="view-btn" data-view="list" onclick="setViewMode('list')" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="sort-controls">
+                                <select id="sortBy" class="sort-select" onchange="sortItems()">
+                                    <option value="name">Sort by Name</option>
+                                    <option value="type">Sort by Type</option>
+                                    <option value="size">Sort by Size</option>
+                                    <option value="modified">Sort by Modified</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content Grid/List -->
+                    <div class="content-grid" id="contentGrid">
+                        <div class="loading-content">
+                            <div class="spinner"></div>
+                            <p>Loading contents...</p>
+                        </div>
+                    </div>
+
+                    <!-- File Stats -->
+                    <div class="file-stats" id="fileStats" style="display: none;">
+                        <div class="stats-item">
+                            <i class="fas fa-folder"></i>
+                            <span id="folderCount">0</span> folders
+                        </div>
+                        <div class="stats-item">
+                            <i class="fas fa-file"></i>
+                            <span id="fileCount">0</span> files
+                        </div>
+                        <div class="stats-item">
+                            <i class="fas fa-hdd"></i>
+                            <span id="totalSize">0 B</span> total
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div id="fileModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <div class="file-title">
+                    <h3 id="modalFileName">File Preview</h3>
+                    <div class="file-badges">
+                        <span class="badge" id="fileExtensionBadge"></span>
+                        <span class="badge size-badge" id="fileSizeBadge"></span>
+                    </div>
+                </div>
+                <button class="close-button" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="file-meta">
+                    <div class="meta-grid">
+                        <div class="meta-item">
+                            <i class="fas fa-folder-open"></i>
+                            <span class="meta-label">Path:</span>
+                            <span class="meta-value" id="modalPath"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span class="meta-label">Modified:</span>
+                            <span class="meta-value" id="modalModified"></span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-file-code"></i>
+                            <span class="meta-label">Lines:</span>
+                            <span class="meta-value" id="modalLines"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="code-viewer">
+                    <div class="code-header">
+                        <div class="code-controls">
+                            <button class="btn-code-action" onclick="copyCode()" title="Copy Code">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="btn-code-action" onclick="downloadFile()" title="Download File">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="btn-code-action" onclick="toggleLineNumbers()" title="Toggle Line Numbers">
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-arduino.min.js"></script>
+    <script src="/js/browse-column.js"></script>
+</body>
+</html>

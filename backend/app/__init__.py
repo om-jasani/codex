@@ -78,11 +78,12 @@ def create_app(config_name='production'):
         return redirect('/login.html')
     
     # Register blueprints
-    from app.api import search_bp, admin_bp, auth_bp, file_bp
+    from app.api import search_bp, admin_bp, auth_bp, file_bp, browse_bp
     app.register_blueprint(search_bp, url_prefix='/api/search')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(file_bp, url_prefix='/api/files')
+    app.register_blueprint(browse_bp, url_prefix='/api/browse')
     
     # Frontend routes
     frontend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend'))
@@ -91,6 +92,12 @@ def create_app(config_name='production'):
     def index():
         """Main search page"""
         return send_from_directory(frontend_path, 'index.html')
+    
+    @app.route('/browse.html')
+    @app.route('/browse')
+    def browse():
+        """Repository browser page"""
+        return send_from_directory(frontend_path, 'browse.html')
     
     @app.route('/login.html')
     @app.route('/login')

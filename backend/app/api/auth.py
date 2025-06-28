@@ -84,6 +84,26 @@ def get_current_user():
         'role': current_user.role
     })
 
+@auth_bp.route('/status', methods=['GET'])
+def auth_status():
+    """Check authentication status"""
+    if current_user.is_authenticated:
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'email': current_user.email,
+                'role': current_user.role
+            }
+        })
+    else:
+        return jsonify({
+            'authenticated': False,
+            'user': None
+        })
+
 @auth_bp.route('/change-password', methods=['POST'])
 @login_required
 def change_password():
@@ -114,21 +134,6 @@ def change_password():
     current_app.logger.info(f'Password changed for user: {current_user.username}')
     
     return jsonify({'message': 'Password changed successfully'})
-
-@auth_bp.route('/check', methods=['GET'])
-def check_auth():
-    """Check authentication status"""
-    if current_user.is_authenticated:
-        return jsonify({
-            'authenticated': True,
-            'user': {
-                'id': current_user.id,
-                'username': current_user.username,
-                'role': current_user.role
-            }
-        })
-    else:
-        return jsonify({'authenticated': False})
 
 # Create default admin if none exists
 def create_default_admin():

@@ -51,13 +51,6 @@ def reset_database():
                 role='admin'
             )
             db.session.add(admin_user)
-              # Create a default project
-            print("📁 Creating default project...")
-            default_project = Project(
-                name='Default',
-                description='Default project for file uploads'
-            )
-            db.session.add(default_project)
             
             # Commit changes
             db.session.commit()
@@ -104,7 +97,6 @@ def main():
     print("- Delete ALL data from the database")
     print("- Remove ALL uploaded files")
     print("- Create a fresh admin user")
-    print("- Create a default project")
     print()
     
     # Always confirm for safety

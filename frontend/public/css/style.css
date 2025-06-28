@@ -13,6 +13,11 @@
     --error-color: #ef4444;
     --warning-color: #f59e0b;
     --code-background: #1e293b;
+    
+    /* Additional variables for browse interface */
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --hover-bg: #f1f5f9;
 }
 
 * {

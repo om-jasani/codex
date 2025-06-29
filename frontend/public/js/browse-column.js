@@ -415,11 +415,8 @@ function renderFileContent(file, fileData, container) {
                             <iframe class="html-preview-iframe" srcdoc="${escapeHtml(content)}" sandbox="allow-same-origin allow-scripts" style="width: 100%; height: 100%; border: none;"></iframe>
                         </div>
                         <div id="html-source-panel" class="html-preview-panel" style="display: none; height: 100%;">
-                            <div class="file-content-with-lines" style="height: 100%;">
-                                <pre class="line-numbers">${generateLineNumbers(content)}</pre>
-                                <div class="file-content-scrollable">
-                                    <pre class="file-content-code"><code class="language-html">${escapeHtml(content)}</code></pre>
-                                </div>
+                            <div class="code-container">
+                                <pre class="code-preview"><code class="language-html">${escapeHtml(content)}</code></pre>
                             </div>
                         </div>
                     </div>
@@ -493,10 +490,10 @@ function renderFileContent(file, fileData, container) {
         if (!content) {
             container.innerHTML = `
                 <div class="file-content-wrapper">
-                    <div class="file-preview-error">
+                    <div class="file-error">
                         <i class="fas fa-file-times"></i>
-                        <h3>No content available</h3>
-                        <p>The file appears to be empty or could not be read.</p>
+                        <p>No content available</p>
+                        <small>The file appears to be empty or could not be read.</small>
                     </div>
                 </div>
             `;
@@ -526,15 +523,12 @@ function renderFileContent(file, fileData, container) {
         
         // Ensure content is fully displayed
         const lines = content.split('\n');
-        const lineNumbers = lines.map((_, i) => (i + 1).toString()).join('\n');
+        const lineNumbers = lines.map((_, i) => (i + 1).toString().padStart(4, ' ')).join('\n');
         
         container.innerHTML = `
             <div class="file-content-wrapper">
-                <div class="file-content-with-lines">
-                    <pre class="line-numbers">${lineNumbers}</pre>
-                    <div class="file-content-scrollable">
-                        <pre class="file-content-code"><code id="file-code-content">${escapeHtml(content)}</code></pre>
-                    </div>
+                <div class="code-container">
+                    <pre class="code-preview"><code id="file-code-content">${escapeHtml(content)}</code></pre>
                 </div>
             </div>
         `;
@@ -544,11 +538,9 @@ function renderFileContent(file, fileData, container) {
             if (window.Prism) {
                 const codeElement = container.querySelector('#file-code-content');
                 if (codeElement) {
-                    const language = getLanguageFromExtension(ext);
-                    if (language) {
-                        codeElement.className = `language-${language}`;
-                        console.log('Applied syntax highlighting for language:', language);
-                    }
+                    const language = getPrismLanguage(`.${ext}`);
+                    codeElement.className = language;
+                    console.log('Applied syntax highlighting for language:', language);
                     try {
                         Prism.highlightElement(codeElement);
                         console.log('Prism highlighting applied successfully');
@@ -560,25 +552,22 @@ function renderFileContent(file, fileData, container) {
                 console.log('Prism not available for syntax highlighting');
             }
             
-            // Ensure content is fully displayed by checking the rendered dimensions
-            const contentElement = container.querySelector('.file-content-code');
-            if (contentElement) {
-                console.log('Content rendered dimensions:', {
-                    scrollHeight: contentElement.scrollHeight,
-                    clientHeight: contentElement.clientHeight,
-                    scrollWidth: contentElement.scrollWidth,
-                    clientWidth: contentElement.clientWidth
-                });
+            // Re-run Prism highlighting if available
+            if (window.Prism) {
+                Prism.highlightAll();
+                console.log('Prism highlighting applied successfully');
+            } else {
+                console.log('Prism not available for syntax highlighting');
             }
         }, 150);
     } else {
         // Fallback for unknown file types
         container.innerHTML = `
             <div class="file-content-wrapper">
-                <div class="file-preview-error">
+                <div class="file-error">
                     <i class="fas fa-file-times"></i>
-                    <h3>Unable to preview this file</h3>
-                    <p>This file type cannot be displayed or the file content is not available.</p>
+                    <p>Unable to preview this file</p>
+                    <small>This file type cannot be displayed or the file content is not available.</small>
                 </div>
             </div>
         `;
@@ -615,36 +604,13 @@ window.showHtmlTab = function(tabElement, panel) {
 
 function closeFilePreviewModal() {
     const modal = document.getElementById('filePreviewModal');
-    const modalContent = modal.querySelector('.modal-content');
-    
-    // Reset any fullscreen or font size changes
-    modal.style.padding = '20px';
-    if (modalContent) {
-        modalContent.style.width = '95vw';
-        modalContent.style.height = '90vh';
-        modalContent.style.borderRadius = '12px';
-    }
-    
-    // Reset font sizes
-    const codeElement = modal.querySelector('.file-content-code');
-    const lineNumbers = modal.querySelector('.line-numbers');
-    if (codeElement) {
-        codeElement.style.fontSize = '13px';
-    }
-    if (lineNumbers) {
-        lineNumbers.style.fontSize = '13px';
-    }
-    
-    modal.classList.remove('visible');
-    
-    // Use setTimeout to allow CSS transition to complete
-    setTimeout(() => {
-        if (!modal.classList.contains('visible')) {
+    if (modal) {
+        modal.classList.remove('visible');
+        setTimeout(() => {
             modal.style.display = 'none';
-        }
-    }, 300); // Match the CSS transition duration
-    
-    document.body.style.overflow = ''; // Restore background scrolling
+            document.body.style.overflow = ''; // Restore background scrolling
+        }, 300); // Match CSS transition duration
+    }
 }
 
 function escapeHtml(text) {
@@ -658,21 +624,67 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
+function getPrismLanguage(filetype) {
+    const langMap = {
+        '.py': 'language-python',
+        '.js': 'language-javascript',
+        '.jsx': 'language-javascript',
+        '.ts': 'language-typescript',
+        '.tsx': 'language-typescript',
+        '.java': 'language-java',
+        '.c': 'language-c',
+        '.cpp': 'language-cpp',
+        '.cxx': 'language-cpp',
+        '.cc': 'language-cpp',
+        '.h': 'language-c',
+        '.hpp': 'language-cpp',
+        '.cs': 'language-csharp',
+        '.php': 'language-php',
+        '.rb': 'language-ruby',
+        '.go': 'language-go',
+        '.rs': 'language-rust',
+        '.swift': 'language-swift',
+        '.kt': 'language-kotlin',
+        '.scala': 'language-scala',
+        '.html': 'language-html',
+        '.htm': 'language-html',
+        '.css': 'language-css',
+        '.scss': 'language-scss',
+        '.sass': 'language-scss',
+        '.less': 'language-css',
+        '.sql': 'language-sql',
+        '.json': 'language-json',
+        '.xml': 'language-xml',
+        '.yaml': 'language-yaml',
+        '.yml': 'language-yaml',
+        '.md': 'language-markdown',
+        '.markdown': 'language-markdown',
+        '.ino': 'language-arduino',
+        '.sh': 'language-bash',
+        '.bash': 'language-bash',
+        '.ps1': 'language-powershell',
+        '.bat': 'language-batch',
+        '.cmd': 'language-batch'
+    };
+    
+    return langMap[filetype] || 'language-none';
+}
+
 function getLanguageFromExtension(ext) {
     const languageMap = {
         'js': 'javascript',
-        'jsx': 'javascript', 
+        'jsx': 'javascript',
         'ts': 'typescript',
         'tsx': 'typescript',
         'py': 'python',
+        'pyw': 'python',
+        'java': 'java',
         'c': 'c',
         'cpp': 'cpp',
         'cxx': 'cpp',
         'cc': 'cpp',
         'h': 'c',
         'hpp': 'cpp',
-        'hxx': 'cpp',
-        'java': 'java',
         'cs': 'csharp',
         'php': 'php',
         'rb': 'ruby',
@@ -681,16 +693,13 @@ function getLanguageFromExtension(ext) {
         'swift': 'swift',
         'kt': 'kotlin',
         'scala': 'scala',
-        'r': 'r',
-        'matlab': 'matlab',
-        'm': 'matlab',
         'sh': 'bash',
         'bash': 'bash',
         'zsh': 'bash',
         'fish': 'bash',
+        'ps1': 'powershell',
         'bat': 'batch',
         'cmd': 'batch',
-        'ps1': 'powershell',
         'sql': 'sql',
         'json': 'json',
         'xml': 'xml',
@@ -698,31 +707,24 @@ function getLanguageFromExtension(ext) {
         'htm': 'html',
         'css': 'css',
         'scss': 'scss',
-        'sass': 'sass',
-        'less': 'less',
+        'sass': 'scss',
+        'less': 'css',
         'yaml': 'yaml',
         'yml': 'yaml',
-        'toml': 'toml',
+        'md': 'markdown',
+        'markdown': 'markdown',
+        'ino': 'arduino',
         'ini': 'ini',
         'cfg': 'ini',
         'conf': 'ini',
-        'md': 'markdown',
-        'markdown': 'markdown',
-        'tex': 'latex',
-        'vim': 'vim',
-        'asm': 'assembly',
-        'nasm': 'assembly',
-        'dockerfile': 'dockerfile',
+        'toml': 'ini',
+        'r': 'r',
+        'm': 'matlab',
+        'dockerfile': 'docker',
         'makefile': 'makefile',
-        'make': 'makefile',
-        'gradle': 'gradle',
-        'properties': 'properties',
-        'gitignore': 'gitignore',
-        'log': 'log',
-        'csv': 'csv',
-        'tsv': 'csv',
-        'ino': 'arduino'
+        'mk': 'makefile'
     };
+    
     return languageMap[ext.toLowerCase()] || null;
 }
 

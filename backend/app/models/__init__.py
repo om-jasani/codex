@@ -23,7 +23,6 @@ class User(UserMixin, db.Model):
     
     # Relationships
     search_logs = db.relationship('SearchLog', backref='user', lazy='dynamic')
-    downloads = db.relationship('FileDownload', backref='user', lazy='dynamic')
     
     def set_password(self, password):
         """Hash and set password"""
@@ -73,7 +72,6 @@ class File(db.Model):
     # Relationships
     tags = db.relationship('Tag', secondary=file_tags, lazy='subquery',
                           backref=db.backref('files', lazy=True))
-    downloads = db.relationship('FileDownload', backref='file', lazy='dynamic')
 
 class Tag(db.Model):
     """Tag model"""
@@ -94,13 +92,3 @@ class SearchLog(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     user_ip = db.Column(db.String(45))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-class FileDownload(db.Model):
-    """File download tracking model"""
-    __tablename__ = 'file_downloads'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    file_id = db.Column(db.Integer, db.ForeignKey('files.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    download_timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    user_ip = db.Column(db.String(45))

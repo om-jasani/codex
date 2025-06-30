@@ -880,29 +880,6 @@ def restore_backup():
         current_app.logger.error(f'Restore error: {e}')
         return jsonify({'success': False, 'message': str(e)}), 500
 
-@admin_bp.route('/backup/<backup_name>/download', methods=['GET'])
-@login_required
-@admin_required
-def download_backup(backup_name):
-    """Download a backup file"""
-    try:
-        backup_dir = os.path.join(current_app.root_path, '..', '..', 'backups')
-        backup_path = os.path.join(backup_dir, f"{backup_name}.zip")
-        
-        if not os.path.exists(backup_path):
-            return jsonify({'error': 'Backup file not found'}), 404
-        
-        return send_file(
-            backup_path,
-            as_attachment=True,
-            download_name=f"{backup_name}.zip",
-            mimetype='application/zip'
-        )
-        
-    except Exception as e:
-        current_app.logger.error(f'Download backup error: {e}')
-        return jsonify({'error': str(e)}), 500
-
 @admin_bp.route('/backup/<backup_name>', methods=['DELETE'])
 @login_required
 @admin_required

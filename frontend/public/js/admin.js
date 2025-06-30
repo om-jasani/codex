@@ -1268,9 +1268,6 @@ async function loadBackups() {
                     </div>
                 </div>
                 <div class="backup-actions">
-                    <button class="btn btn-sm btn-primary" onclick="downloadBackup('${backup.name}')" title="Download">
-                        <i class="fas fa-download"></i>
-                    </button>
                     <button class="btn btn-sm btn-warning" onclick="showRestoreBackupModal('${backup.name}')" title="Restore">
                         <i class="fas fa-upload"></i>
                     </button>
@@ -1384,32 +1381,6 @@ async function handleRestoreBackup(event) {
         showNotification('Failed to restore backup', 'error');
     } finally {
         hideLoading();
-    }
-}
-
-async function downloadBackup(backupName) {
-    try {
-        const response = await fetch(`/api/admin/backup/${backupName}/download`);
-        
-        if (!response.ok) {
-            throw new Error('Download failed');
-        }
-        
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${backupName}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
-        showNotification('Backup downloaded successfully', 'success');
-        
-    } catch (error) {
-        console.error('Error downloading backup:', error);
-        showNotification('Failed to download backup', 'error');
     }
 }
 

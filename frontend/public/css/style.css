@@ -165,6 +165,7 @@ body {
     font-weight: 700;
     margin-bottom: 0.5rem;
     background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -656,6 +657,73 @@ body {
     gap: 1rem;
     padding: 1.5rem;
     border-top: 1px solid var(--border-color);
+}
+
+/* HTML Preview Styles for Search Modal */
+.html-preview {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.html-preview-tabs {
+    display: flex;
+    background: var(--background);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0;
+    margin: 0 0 1rem 0;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.html-preview-tab {
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    border-radius: 0.25rem 0.25rem 0 0;
+}
+
+.html-preview-tab:hover {
+    color: var(--text-primary);
+    background: var(--background);
+}
+
+.html-preview-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+    background: var(--surface);
+}
+
+.html-preview-content {
+    flex: 1;
+}
+
+.html-preview-panel {
+    width: 100%;
+}
+
+/* PDF Preview Styles for Search Modal */
+.pdf-preview {
+    width: 100%;
+}
+
+.pdf-controls {
+    padding: 0.75rem;
+    background: var(--background);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.pdf-controls .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
 }
 
 /* Buttons */

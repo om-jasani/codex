@@ -260,8 +260,7 @@ def get_file_content():
             return jsonify({
                 'error': 'File too large for preview',
                 'size': file_info['size'],
-                'mime_type': mime_type,
-                'download_url': f'/api/browse/file-download?path={file_path}'
+                'mime_type': mime_type
             }), 413
         
         # Handle different file types
@@ -289,33 +288,31 @@ def get_file_content():
                 return jsonify({'error': f'Failed to read image: {str(e)}'}), 500
                 
         elif is_pdf_file(file_path):
-            # For PDFs, provide download URL for embedded viewing
+            # For PDFs, provide inline URL for viewing
+            from urllib.parse import quote
             response_data.update({
                 'type': 'pdf',
-                'download_url': f'/api/browse/file-download?path={file_path}'
+                'inline_url': f'/api/browse/file-inline?path={quote(file_path, safe="")}'
             })
             
         elif is_video_file(file_path):
-            # For videos, provide download URL for embedded viewing
+            # For videos, provide file info for display
             response_data.update({
                 'type': 'video',
-                'download_url': f'/api/browse/file-download?path={file_path}',
                 'mime_type': mime_type
             })
             
         elif is_audio_file(file_path):
-            # For audio files, provide download URL for embedded playing
+            # For audio files, provide file info for display
             response_data.update({
                 'type': 'audio',
-                'download_url': f'/api/browse/file-download?path={file_path}',
                 'mime_type': mime_type
             })
             
         elif is_archive_file(file_path):
-            # For archive files, provide download only
+            # For archive files, provide basic info
             response_data.update({
-                'type': 'archive',
-                'download_url': f'/api/browse/file-download?path={file_path}'
+                'type': 'archive'
             })
             
         elif is_text_file(file_path):
@@ -361,75 +358,15 @@ def get_file_content():
             except Exception as e:
                 return jsonify({'error': f'Unable to read file: {str(e)}'}), 500
         else:
-            # For other files, provide download option and basic info
+            # For other files, provide basic info
             response_data.update({
-                'type': 'binary',
-                'download_url': f'/api/browse/file-download?path={file_path}'
+                'type': 'binary'
             })
         
         return jsonify(response_data)
         
     except Exception as e:
         return jsonify({'error': f'Failed to read file: {str(e)}'}), 500
-
-@browse_bp.route('/file-download', methods=['GET'])
-def browse_download_file():
-    """Download a file"""
-    file_path = request.args.get('path', '').strip()
-    repo_path = os.getenv('CODE_REPOSITORY_PATH', '')
-    
-    if not file_path:
-        return jsonify({'error': 'File path is required'}), 400
-    
-    # If file_path is not absolute, join it with repo_path
-    if not os.path.isabs(file_path):
-        file_path = os.path.join(repo_path, file_path)
-    
-    # Normalize paths for comparison
-    file_path = os.path.normpath(file_path)
-    repo_path = os.path.normpath(repo_path)
-    
-    # Security check - ensure path is within repository
-    if not file_path.startswith(repo_path):
-        return jsonify({'error': 'Access denied'}), 403
-    
-    if not os.path.exists(file_path) or not os.path.isfile(file_path):
-        return jsonify({'error': 'File not found'}), 404
-    
-    try:
-        return send_file(file_path, as_attachment=True, download_name=os.path.basename(file_path))
-    except Exception as e:
-        return jsonify({'error': f'Failed to download file: {str(e)}'}), 500
-
-@browse_bp.route('/file/download', methods=['GET'])
-def download_file():
-    """Download a specific file"""
-    file_path = request.args.get('path', '').strip()
-    repo_path = os.getenv('CODE_REPOSITORY_PATH', '')
-    
-    if not file_path:
-        return jsonify({'error': 'File path is required'}), 400
-    
-    # If file_path is not absolute, join it with repo_path
-    if not os.path.isabs(file_path):
-        file_path = os.path.join(repo_path, file_path)
-    
-    # Normalize paths for comparison
-    file_path = os.path.normpath(file_path)
-    repo_path = os.path.normpath(repo_path)
-    
-    # Security check - ensure path is within repository
-    if not file_path.startswith(repo_path):
-        return jsonify({'error': 'Access denied'}), 403
-    
-    if not os.path.exists(file_path) or not os.path.isfile(file_path):
-        return jsonify({'error': 'File not found'}), 404
-    
-    try:
-        # Send the file for download
-        return send_file(file_path, as_attachment=True, download_name=os.path.basename(file_path))
-    except Exception as e:
-        return jsonify({'error': f'Failed to download file: {str(e)}'}), 500
 
 @browse_bp.route('/search', methods=['GET'])
 def search_in_structure():
@@ -499,3 +436,40 @@ def search_in_structure():
         
     except Exception as e:
         return jsonify({'error': f'Search failed: {str(e)}'}), 500
+
+@browse_bp.route('/file-inline', methods=['GET'])
+def browse_inline_file():
+    """Serve a file inline (for PDFs and other viewable content)"""
+    file_path = request.args.get('path', '').strip()
+    repo_path = os.getenv('CODE_REPOSITORY_PATH', '')
+    
+    if not file_path:
+        return jsonify({'error': 'File path is required'}), 400
+    
+    # If file_path is not absolute, join it with repo_path
+    if not os.path.isabs(file_path):
+        file_path = os.path.join(repo_path, file_path)
+    
+    # Normalize paths for comparison
+    file_path = os.path.normpath(file_path)
+    repo_path = os.path.normpath(repo_path)
+    
+    # Security check - ensure path is within repository
+    if not file_path.startswith(repo_path):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        return jsonify({'error': 'File not found'}), 404
+    
+    try:
+        # Determine MIME type
+        mime_type = get_mime_type(file_path)
+        
+        # For PDFs, set Content-Disposition to inline
+        response = send_file(file_path, mimetype=mime_type)
+        if is_pdf_file(file_path):
+            response.headers['Content-Disposition'] = f'inline; filename="{os.path.basename(file_path)}"'
+        
+        return response
+    except Exception as e:
+        return jsonify({'error': f'Failed to serve file: {str(e)}'}), 500

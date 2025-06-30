@@ -408,14 +408,26 @@ async function viewFile(fileId) {
             if (contentResponse.ok) {
                 const contentData = await contentResponse.json();
                 
-                // Display code with syntax highlighting
-                const codeElement = document.querySelector('#codePreview code');
-                codeElement.textContent = contentData.content || '// Empty file';
-                codeElement.className = getPrismLanguage(file.filetype);
-                
-                // Re-run Prism highlighting
-                if (window.Prism) {
-                    Prism.highlightElement(codeElement);
+                if (contentData.type === 'pdf') {
+                    // Handle PDF files
+                    const inlineUrl = contentData.inline_url;
+                    codeContainer.innerHTML = `
+                        <div class="pdf-preview">
+                            <iframe src="${inlineUrl}#toolbar=1&navpanes=1&scrollbar=1" type="application/pdf" style="width: 100%; height: 500px; border: none;">
+                                <p>Your browser doesn't support embedded PDFs.</p>
+                            </iframe>
+                        </div>
+                    `;
+                } else {
+                    // Handle all text files (including HTML as source code)
+                    const codeElement = document.querySelector('#codePreview code');
+                    codeElement.textContent = contentData.content || '// Empty file';
+                    codeElement.className = getPrismLanguage(file.filetype);
+                    
+                    // Re-run Prism highlighting
+                    if (window.Prism) {
+                        Prism.highlightElement(codeElement);
+                    }
                 }
                 
                 codeContainer.style.display = 'block';
@@ -441,19 +453,6 @@ async function viewFile(fileId) {
 function closeModal() {
     document.getElementById('fileModal').style.display = 'none';
     currentFileId = null;
-}
-
-// Download file
-function downloadFile() {
-    if (!currentFileId) return;
-    
-    // Create a form to submit the download request
-    const form = document.createElement('form');
-    form.method = 'GET';
-    form.action = `${API_BASE}/files/${currentFileId}/download`;
-    document.body.appendChild(form);
-    form.submit();
-    document.body.removeChild(form);
 }
 
 // Copy file path to clipboard
@@ -594,6 +593,18 @@ function showMessage(message, type = 'info') {
             document.body.removeChild(messageDiv);
         }, 300);
     }, 3000);
+}
+
+// Helper function to escape HTML for search modal
+function escapeHtmlForSearch(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 // Utility Functions

@@ -633,25 +633,6 @@ function copyCode() {
     }
 }
 
-function downloadFile() {
-    const modal = document.getElementById('fileModal');
-    const fileData = modal.currentFileData;
-    
-    if (fileData) {
-        const blob = new Blob([fileData.content], { type: 'text/plain' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileData.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        
-        showNotification('File downloaded');
-    }
-}
-
 function toggleLineNumbers() {
     const codePreview = document.getElementById('codePreview');
     codePreview.classList.toggle('line-numbers');

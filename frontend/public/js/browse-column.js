@@ -386,11 +386,11 @@ function renderFileContent(file, fileData, container) {
         `;
     } else if (fileData.type === 'pdf') {
         // PDF files with embedded viewer
-        const downloadUrl = fileData.download_url || `/api/browse/file-download?path=${encodeURIComponent(file.path)}`;
+        const inlineUrl = fileData.inline_url || `/api/browse/file-inline?path=${encodeURIComponent(file.path)}`;
         container.innerHTML = `
             <div class="file-content-wrapper">
                 <div class="pdf-preview">
-                    <iframe class="pdf-embed" src="${downloadUrl}#toolbar=1&navpanes=1&scrollbar=1" type="application/pdf" style="width: 100%; height: 100%; border: none;">
+                    <iframe class="pdf-embed" src="${inlineUrl}#toolbar=1&navpanes=1&scrollbar=1" type="application/pdf" style="width: 100%; height: 100%; border: none;">
                         <div class="pdf-preview-info">
                             <i class="fas fa-file-pdf"></i>
                             <h3>PDF Preview</h3>
@@ -400,91 +400,8 @@ function renderFileContent(file, fileData, container) {
                 </div>
             </div>
         `;
-    } else if (ext === 'html' || ext === 'htm') {
-        // HTML files with preview and code view
-        const content = fileData.content || '';
-        container.innerHTML = `
-            <div class="file-content-wrapper">
-                <div class="html-preview">
-                    <div class="html-preview-tabs">
-                        <button class="html-preview-tab active" onclick="showHtmlTab(this, 'preview')">Preview</button>
-                        <button class="html-preview-tab" onclick="showHtmlTab(this, 'source')">Source</button>
-                    </div>
-                    <div class="html-preview-content" style="flex: 1; overflow: hidden;">
-                        <div id="html-preview-panel" class="html-preview-panel" style="height: 100%;">
-                            <iframe class="html-preview-iframe" srcdoc="${escapeHtml(content)}" sandbox="allow-same-origin allow-scripts" style="width: 100%; height: 100%; border: none;"></iframe>
-                        </div>
-                        <div id="html-source-panel" class="html-preview-panel" style="display: none; height: 100%;">
-                            <div class="code-container">
-                                <pre class="code-preview"><code class="language-html">${escapeHtml(content)}</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        // Apply syntax highlighting to source panel
-        setTimeout(() => {
-            if (window.Prism) {
-                const codeElement = container.querySelector('#html-source-panel code');
-                if (codeElement) {
-                    Prism.highlightElement(codeElement);
-                }
-            }
-        }, 100);
-    } else if (mime.startsWith('video/')) {
-        // Video files
-        const downloadUrl = fileData.download_url || `/api/browse/file-download?path=${encodeURIComponent(file.path)}`;
-        container.innerHTML = `
-            <div class="file-content-wrapper">
-                <div class="video-preview">
-                    <video controls style="max-width: 100%; max-height: 100%;">
-                        <source src="${downloadUrl}" type="${mime}">
-                        Your browser doesn't support video playback.
-                    </video>
-                </div>
-            </div>
-        `;
-    } else if (mime.startsWith('audio/')) {
-        // Audio files
-        const downloadUrl = fileData.download_url || `/api/browse/file-download?path=${encodeURIComponent(file.path)}`;
-        container.innerHTML = `
-            <div class="file-content-wrapper">
-                <div class="audio-preview">
-                    <i class="fas fa-music"></i>
-                    <h3>${file.name}</h3>
-                    <audio controls style="width: 100%; max-width: 400px;">
-                        <source src="${downloadUrl}" type="${mime}">
-                        Your browser doesn't support audio playback.
-                    </audio>
-                </div>
-            </div>
-        `;
-    } else if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(ext)) {
-        // Archive files
-        container.innerHTML = `
-            <div class="file-content-wrapper">
-                <div class="archive-preview-info">
-                    <i class="fas fa-file-archive"></i>
-                    <h3>Archive File</h3>
-                    <p>This is a compressed archive file.</p>
-                </div>
-            </div>
-        `;
-    } else if (fileData.type === 'binary') {
-        // Binary files
-        container.innerHTML = `
-            <div class="file-content-wrapper">
-                <div class="binary-preview-info">
-                    <i class="fas fa-file"></i>
-                    <h3>Binary File</h3>
-                    <p>This file cannot be previewed as text.</p>
-                </div>
-            </div>
-        `;
     } else if (fileData.content !== undefined || fileData.type === 'text') {
-        // Text files (including code, JSON, XML, etc.)
+        // Text files (including code, JSON, XML, HTML, etc.)
         let content = fileData.content || '';
         
         if (!content) {
@@ -578,29 +495,6 @@ function generateLineNumbers(content) {
     const lines = content.split('\n');
     return lines.map((_, i) => (i + 1).toString().padStart(4, ' ')).join('\n');
 }
-
-// Helper function for HTML tab switching
-window.showHtmlTab = function(tabElement, panel) {
-    // Remove active class from all tabs
-    document.querySelectorAll('.html-preview-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    
-    // Add active class to clicked tab
-    tabElement.classList.add('active');
-    
-    // Hide all panels
-    document.querySelectorAll('.html-preview-panel').forEach(panel => {
-        panel.style.display = 'none';
-    });
-    
-    // Show selected panel
-    if (panel === 'preview') {
-        document.getElementById('html-preview-panel').style.display = 'block';
-    } else if (panel === 'source') {
-        document.getElementById('html-source-panel').style.display = 'block';
-    }
-};
 
 function closeFilePreviewModal() {
     const modal = document.getElementById('filePreviewModal');

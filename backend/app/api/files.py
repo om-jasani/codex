@@ -4,7 +4,7 @@ File Handling API Endpoints - Complete Implementation
 
 from flask import Blueprint, request, jsonify, send_file, current_app
 from flask_login import login_required, current_user
-from app.models import File, FileDownload, db
+from app.models import File, db
 import os
 from datetime import datetime
 import mimetypes
@@ -46,6 +46,21 @@ def get_file_content(file_id):
         return jsonify({'error': 'File not found on disk'}), 404
     
     try:
+        # Check file type for special handling
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        is_html = file_ext in ['.html', '.htm']
+        is_pdf = file_ext == '.pdf'
+        
+        if is_pdf:
+            # For PDF files, provide URL for inline viewing only
+            from urllib.parse import quote
+            return jsonify({
+                'filename': file.filename,
+                'filetype': file.filetype,
+                'type': 'pdf',
+                'inline_url': f'/api/files/{file_id}/inline'
+            })
+        
         # Try to read the actual file
         with open(file.filepath, 'r', encoding='utf-8', errors='replace') as f:
             content = f.read()
@@ -58,44 +73,38 @@ def get_file_content(file_id):
         return jsonify({
             'filename': file.filename,
             'content': content,
-            'filetype': file.filetype
+            'filetype': file.filetype,
+            'type': 'html' if is_html else 'text'
         })
     except Exception as e:
         current_app.logger.error(f'Error reading file {file.filepath}: {str(e)}')
         return jsonify({'error': 'Unable to read file'}), 500
 
-@file_bp.route('/<int:file_id>/download', methods=['GET'])
-def download_file(file_id):
-    """Download a file"""
+@file_bp.route('/<int:file_id>/inline', methods=['GET'])
+def inline_file(file_id):
+    """Serve a file inline (for PDFs and other viewable content)"""
     file = File.query.get_or_404(file_id)
     
     if not file.is_active:
         return jsonify({'error': 'File not found'}), 404
-    
-    # Log download if user is authenticated
-    if current_user.is_authenticated:
-        download = FileDownload(
-            file_id=file.id,
-            user_id=current_user.id,
-            user_ip=request.remote_addr
-        )
-        db.session.add(download)
-        db.session.commit()
     
     # Check if file exists
     if not os.path.exists(file.filepath):
         return jsonify({'error': 'File not found on disk'}), 404
     
     try:
-        return send_file(
-            file.filepath,
-            as_attachment=True,
-            download_name=file.filename,
-            mimetype=mimetypes.guess_type(file.filename)[0] or 'application/octet-stream'
-        )
+        # Determine MIME type
+        mime_type = mimetypes.guess_type(file.filename)[0] or 'application/octet-stream'
+        
+        # For PDFs, set Content-Disposition to inline
+        response = send_file(file.filepath, mimetype=mime_type)
+        if file.filename.lower().endswith('.pdf'):
+            response.headers['Content-Disposition'] = f'inline; filename="{file.filename}"'
+        
+        return response
     except Exception as e:
-        current_app.logger.error(f'Error downloading file {file.filepath}: {str(e)}')
-        return jsonify({'error': 'Unable to download file'}), 500
+        current_app.logger.error(f'Error serving file inline {file.filepath}: {str(e)}')
+        return jsonify({'error': 'Unable to serve file'}), 500
 
 @file_bp.route('/recent', methods=['GET'])
 def get_recent_files():

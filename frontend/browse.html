@@ -7,39 +7,83 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/browse-column.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
 </head>
 <body>
-    <div class="browse-container">
+    <div class="app-container">
         <!-- Header -->
-        <div class="browse-header">
-            <h1>
-                <i class="fas fa-folder-tree"></i>
-                Code Repository Browser
-            </h1>
-            <div class="header-controls">
-                <div class="auth-status" id="authStatus">
-                    <i class="fas fa-user"></i>
-                    <span id="authStatusText">Checking...</span>
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="/images/circuit-logo.svg" alt="DC Codex" style="width: 24px; height: 24px; margin-right: 8px;">
+                    <span>DC Codex</span>
                 </div>
-                <a href="/" class="btn btn-secondary">
-                    <i class="fas fa-search"></i>
-                    Search
-                </a>
+                <nav class="nav">
+                    <a href="/search.html" class="nav-link">
+                        <i class="fas fa-search"></i>
+                        Search
+                    </a>
+                    <a href="/" class="nav-link active">
+                        <i class="fas fa-folder-tree"></i>
+                        Browse Repository
+                    </a>
+                    <a href="/admin.html" class="nav-link" id="adminLink" style="display:none;">
+                        <i class="fas fa-cog"></i>
+                        Admin Panel
+                    </a>
+                </nav>
+                <div class="user-section">
+                    <div id="userInfo" style="display:none;">
+                        <span class="username" id="username"></span>
+                        <button class="btn-logout" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </div>
+                    <a href="/login.html" class="btn-login" id="loginLink">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login
+                    </a>
+                </div>
             </div>
-        </div>
+        </header>
 
-        <!-- Breadcrumb -->
-        <div class="breadcrumb-container">
-            <div class="breadcrumb" id="breadcrumb">
-                <!-- Breadcrumb items will be populated by JavaScript -->
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Browse Section -->
+            <div class="browse-section">
+                <div class="browse-title-container">
+                    <h1 class="browse-title">
+                        <i class="fas fa-folder-tree"></i>
+                        Code Repository Browser
+                    </h1>
+                    <p class="browse-subtitle">Navigate through your code repositories</p>
+                </div>
+
+                <!-- Breadcrumb Navigation -->
+                <div class="breadcrumb-container">
+                    <nav class="breadcrumb" id="breadcrumb" aria-label="breadcrumb">
+                        <div class="breadcrumb-item active">
+                            <i class="fas fa-home"></i>
+                            <span>Root</span>
+                        </div>
+                    </nav>
+                </div>
+
+                <!-- Column Navigation -->
+                <div class="browse-content">
+                    <div class="column-navigation" id="columnNavigation">
+                        <!-- Columns will be dynamically populated -->
+                        <div class="loading-state" id="loadingState">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <p>Loading repository structure...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- Column Navigation -->
-        <div class="column-navigation" id="columnNavigation">
-            <!-- Columns will be dynamically generated -->
-        </div>
+        </main>
     </div>
 
     <!-- File Preview Modal -->
@@ -107,5 +151,82 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-r.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-matlab.min.js"></script>
     <script src="js/browse-column.js"></script>
+    <script>
+        // Authentication functions for navigation
+        const API_BASE = '/api';
+        let currentUser = null;
+
+        // Check authentication status for navigation
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/me`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateUserInterface();
+                } else {
+                    currentUser = null;
+                    updateUserInterface();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                currentUser = null;
+                updateUserInterface();
+            }
+        }
+
+        // Update UI based on user authentication status
+        function updateUserInterface() {
+            const userInfo = document.getElementById('userInfo');
+            const loginLink = document.getElementById('loginLink');
+            const adminLink = document.getElementById('adminLink');
+            const username = document.getElementById('username');
+            
+            if (currentUser) {
+                userInfo.style.display = 'flex';
+                loginLink.style.display = 'none';
+                
+                if (username) {
+                    username.textContent = currentUser.full_name || currentUser.username;
+                }
+                
+                // Show admin link for admin users
+                if (currentUser.role === 'admin' && adminLink) {
+                    adminLink.style.display = 'block';
+                }
+            } else {
+                userInfo.style.display = 'none';
+                loginLink.style.display = 'block';
+                
+                if (adminLink) {
+                    adminLink.style.display = 'none';
+                }
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/';
+            }
+        }
+
+        // Initialize authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+    </script>
 </body>
 </html>

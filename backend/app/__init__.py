@@ -90,13 +90,19 @@ def create_app(config_name='production'):
     
     @app.route('/')
     def index():
-        """Main search page"""
+        """Repository browser page - now the main/default page"""
+        return send_from_directory(frontend_path, 'browse.html')
+    
+    @app.route('/search.html')
+    @app.route('/search')
+    def search():
+        """Search page"""
         return send_from_directory(frontend_path, 'index.html')
     
     @app.route('/browse.html')
     @app.route('/browse')
     def browse():
-        """Repository browser page"""
+        """Repository browser page - redirect to main"""
         return send_from_directory(frontend_path, 'browse.html')
     
     @app.route('/login.html')
@@ -104,7 +110,7 @@ def create_app(config_name='production'):
     def login():
         """Login page"""
         if current_user.is_authenticated:
-            return redirect('/')
+            return redirect('/')  # Redirect to browse page (now default)
         return send_from_directory(frontend_path, 'login.html')
     
     @app.route('/admin.html')
@@ -113,7 +119,7 @@ def create_app(config_name='production'):
     def admin():
         """Admin panel - requires authentication"""
         if current_user.role != 'admin':
-            return redirect('/')
+            return redirect('/')  # Redirect to browse page (now default)
         return send_from_directory(frontend_path, 'admin.html')
     
     @app.route('/logout')
@@ -146,7 +152,7 @@ def create_app(config_name='production'):
     def not_found_error(error):
         if request.path.startswith('/api/'):
             return jsonify({'error': 'Resource not found'}), 404
-        return redirect('/')
+        return redirect('/')  # Redirect to browse page (now default)
     
     @app.errorhandler(500)
     def internal_error(error):
@@ -154,7 +160,7 @@ def create_app(config_name='production'):
         app.logger.error(f'Internal error: {error}')
         if request.path.startswith('/api/'):
             return jsonify({'error': 'Internal server error'}), 500
-        return redirect('/')
+        return redirect('/')  # Redirect to browse page (now default)
     
     @app.errorhandler(413)
     def request_entity_too_large(error):

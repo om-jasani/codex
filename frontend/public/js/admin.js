@@ -197,7 +197,7 @@ async function checkAdminAuth() {
         
         if (currentUser.role !== 'admin') {
             alert('Admin access required');
-            window.location.href = '/';
+            window.location.href = '/';  // Redirect to browse page (now default)
             return;
         }
         

@@ -143,7 +143,8 @@ F:\Codex\
 │       ├── services/    # Business logic
 │       └── utils/       # Utility functions
 ├── frontend/            # Web interface
-│   ├── index.html       # Main search page
+│   ├── browse.html      # Repository browser (default page)
+│   ├── index.html       # Search page
 │   ├── admin.html       # Admin panel
 │   └── public/          # Static assets
 ├── database/            # Database scripts

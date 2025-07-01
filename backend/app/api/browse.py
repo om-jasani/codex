@@ -125,13 +125,14 @@ def get_file_info(filepath):
             'created': None
         }
 
-def scan_directory(path, max_depth=10, current_depth=0):
+def scan_directory(path, max_depth=15, current_depth=0):
     """Recursively scan directory structure"""
     if current_depth >= max_depth:
         return []
     
     try:
         items = []
+        total_children = 0
         
         # Get all items in directory
         for item in sorted(os.listdir(path)):
@@ -141,16 +142,24 @@ def scan_directory(path, max_depth=10, current_depth=0):
             item_path = os.path.join(path, item)
             
             if os.path.isdir(item_path):
-                # It's a directory
+                # It's a directory - scan its children
                 children = scan_directory(item_path, max_depth, current_depth + 1)
+                # Count immediate children (files and folders)
+                try:
+                    immediate_children = len([x for x in os.listdir(item_path) if not x.startswith('.')])
+                except:
+                    immediate_children = 0
+                
                 items.append({
                     'name': item,
                     'type': 'folder',
                     'path': item_path.replace('\\', '/'),
                     'children': children,
                     'icon': 'fas fa-folder',
-                    'expandable': len(children) > 0
+                    'expandable': immediate_children > 0,
+                    'item_count': immediate_children
                 })
+                total_children += immediate_children
             else:
                 # It's a file
                 file_info = get_file_info(item_path)
@@ -176,10 +185,13 @@ def get_folder_structure():
     repo_path = os.getenv('CODE_REPOSITORY_PATH', '')
     
     if not repo_path or not os.path.exists(repo_path):
-        return jsonify({'error': 'Repository path not configured or not found'}), 404
+        return jsonify({
+            'success': False,
+            'error': 'Repository path not configured or not found'
+        }), 404
     
     try:
-        structure = scan_directory(repo_path, max_depth=3)
+        structure = scan_directory(repo_path, max_depth=15)
         
         return jsonify({
             'success': True,
@@ -188,7 +200,10 @@ def get_folder_structure():
             'total_items': len(structure) if structure else 0
         })
     except Exception as e:
-        return jsonify({'error': f'Failed to scan directory: {str(e)}'}), 500
+        return jsonify({
+            'success': False,
+            'error': f'Failed to scan directory: {str(e)}'
+        }), 500
 
 @browse_bp.route('/folder', methods=['GET'])
 def get_folder_contents():
@@ -215,7 +230,7 @@ def get_folder_contents():
         return jsonify({'error': 'Folder not found'}), 404
     
     try:
-        contents = scan_directory(folder_path, max_depth=2)
+        contents = scan_directory(folder_path, max_depth=15)
         
         return jsonify({
             'success': True,

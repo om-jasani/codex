@@ -58,7 +58,7 @@ if not exist .env (
 REM Run database setup
 echo.
 echo Setting up database...
-python setup_database.py
+python backend\app\scripts\setup_database.py
 if errorlevel 1 (
     echo Error: Database setup failed
     pause

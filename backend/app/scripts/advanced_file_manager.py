@@ -12,7 +12,9 @@ from datetime import datetime
 from pathlib import Path
 
 # Add the backend directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+backend_path = os.path.join(project_root, 'backend')
+sys.path.insert(0, backend_path)
 
 from app import create_app
 from app.models import db, File, Project, Tag
@@ -102,7 +104,7 @@ class AdvancedFileManager:
         print("-" * 60)
         
         if not directory_path:
-            directory_path = os.getenv('CODE_REPOSITORY_PATH', os.path.join(os.path.dirname(__file__), 'sample-data'))
+            directory_path = os.getenv('CODE_REPOSITORY_PATH', os.path.join(project_root, 'sample-data'))
         
         with self.app.app_context():
             indexer = AdvancedFileIndexer()
@@ -143,7 +145,7 @@ class AdvancedFileManager:
         """Check for files on disk that aren't in database"""
         print("🔍 Checking for orphaned files on disk...")
         
-        repo_path = os.getenv('CODE_REPOSITORY_PATH', os.path.join(os.path.dirname(__file__), 'sample-data'))
+        repo_path = os.getenv('CODE_REPOSITORY_PATH', os.path.join(project_root, 'sample-data'))
         if not os.path.exists(repo_path):
             print(f"   ⚠️  Repository path not found: {repo_path}")
             return

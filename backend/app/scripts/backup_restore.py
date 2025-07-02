@@ -13,7 +13,9 @@ import argparse
 from datetime import datetime
 
 # Setup paths
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+backend_path = os.path.join(project_root, 'backend')
+sys.path.insert(0, backend_path)
 
 def setup_app():
     """Setup Flask app context"""
@@ -27,7 +29,7 @@ def create_backup(backup_name=None):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_name = f"codex_backup_{timestamp}"
     
-    backup_dir = os.path.join(os.path.dirname(__file__), 'backups')
+    backup_dir = os.path.join(project_root, 'backups')
     os.makedirs(backup_dir, exist_ok=True)
     
     backup_path = os.path.join(backup_dir, f"{backup_name}.zip")
@@ -45,25 +47,25 @@ def create_backup(backup_name=None):
             
             # 2. Backup database schema
             print("🗄️  Backing up database schema...")
-            schema_path = os.path.join(os.path.dirname(__file__), 'database', 'schema.sql')
+            schema_path = os.path.join(project_root, 'database', 'schema.sql')
             if os.path.exists(schema_path):
                 backup_zip.write(schema_path, 'database/schema.sql')
             
             # 3. Backup file storage
             print("📁 Backing up file storage...")
-            file_storage_path = os.path.join(os.path.dirname(__file__), 'file_storage')
+            file_storage_path = os.path.join(project_root, 'file_storage')
             if os.path.exists(file_storage_path):
                 for root, dirs, files in os.walk(file_storage_path):
                     for file in files:
                         file_path = os.path.join(root, file)
-                        arc_path = os.path.relpath(file_path, os.path.dirname(__file__))
+                        arc_path = os.path.relpath(file_path, project_root)
                         backup_zip.write(file_path, arc_path)
             
             # 4. Backup configuration
             print("⚙️  Backing up configuration...")
             config_files = ['.env', 'requirements.txt']
             for config_file in config_files:
-                config_path = os.path.join(os.path.dirname(__file__), config_file)
+                config_path = os.path.join(project_root, config_file)
                 if os.path.exists(config_path):
                     backup_zip.write(config_path, f'config/{config_file}')
             
@@ -216,12 +218,12 @@ def restore_backup(backup_path, force=False):
             
             # 4. Restore file storage
             print("📁 Restoring file storage...")
-            file_storage_path = os.path.join(os.path.dirname(__file__), 'file_storage')
+            file_storage_path = os.path.join(project_root, 'file_storage')
             os.makedirs(file_storage_path, exist_ok=True)
             
             for file_info in backup_zip.infolist():
                 if file_info.filename.startswith('file_storage/'):
-                    backup_zip.extract(file_info, os.path.dirname(__file__))
+                    backup_zip.extract(file_info, project_root)
             
             # 5. Restore configuration (optional)
             config_response = input("Restore configuration files (.env, etc.)? (y/n): ")
@@ -232,7 +234,7 @@ def restore_backup(backup_path, force=False):
                         # Extract to root directory
                         config_name = os.path.basename(file_info.filename)
                         config_content = backup_zip.read(file_info)
-                        with open(config_name, 'wb') as f:
+                        with open(os.path.join(project_root, config_name), 'wb') as f:
                             f.write(config_content)
         
         print("✅ Restore completed successfully!")
@@ -328,14 +330,14 @@ def clean_for_restore():
         db.session.commit()
         
         # Clean file storage
-        file_storage_path = os.path.join(os.path.dirname(__file__), 'file_storage')
+        file_storage_path = os.path.join(project_root, 'file_storage')
         if os.path.exists(file_storage_path):
             shutil.rmtree(file_storage_path)
         os.makedirs(file_storage_path, exist_ok=True)
 
 def list_backups():
     """List available backups"""
-    backup_dir = os.path.join(os.path.dirname(__file__), 'backups')
+    backup_dir = os.path.join(project_root, 'backups')
     if not os.path.exists(backup_dir):
         print("📁 No backups directory found")
         return

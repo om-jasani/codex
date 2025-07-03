@@ -124,24 +124,12 @@ function handleModalKeyboard(e) {
             }
             break;
             
-        case 'd':
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                downloadFile();
-            }
-            break;
+
             
         case 'c':
             if (e.ctrlKey || e.metaKey && e.shiftKey) {
                 e.preventDefault();
                 copyAllContent();
-            }
-            break;
-            
-        case 't':
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                toggleTheme();
             }
             break;
     }
@@ -670,17 +658,9 @@ function updateModalSidebar(file, fileData) {
         <div class="file-actions-section">
             <h3>Actions</h3>
             <div class="action-buttons">
-                <button class="action-btn" onclick="copyFilePath()" title="Copy file path">
-                    <i class="fas fa-copy"></i>
-                    Copy Path
-                </button>
                 <button class="action-btn" onclick="copyAllContent()" title="Copy file content">
                     <i class="fas fa-clipboard"></i>
                     Copy Content
-                </button>
-                <button class="action-btn" onclick="downloadFile()" title="Download file">
-                    <i class="fas fa-download"></i>
-                    Download
                 </button>
                 <button class="action-btn" onclick="toggleFullscreen()" title="Toggle fullscreen">
                     <i class="fas fa-expand"></i>
@@ -743,17 +723,10 @@ function updateModalSidebar(file, fileData) {
                     <span class="shortcut-key">Ctrl+F</span>
                     <span class="shortcut-desc">Search</span>
                 </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-key">Ctrl+D</span>
-                    <span class="shortcut-desc">Download</span>
-                </div>
+
                 <div class="shortcut-item">
                     <span class="shortcut-key">F11</span>
                     <span class="shortcut-desc">Fullscreen</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-key">Ctrl+T</span>
-                    <span class="shortcut-desc">Toggle theme</span>
                 </div>
                 <div class="shortcut-item">
                     <span class="shortcut-key">Esc</span>
@@ -836,10 +809,6 @@ function renderFileContent(file, fileData, container) {
                     <i class="fas fa-file-times"></i>
                     <h3>Preview not available</h3>
                     <p>This file type cannot be displayed or the file content is not available.</p>
-                    <button class="action-btn" onclick="downloadFile()">
-                        <i class="fas fa-download"></i>
-                        Download File
-                    </button>
                 </div>
             </div>
         `;
@@ -893,9 +862,6 @@ function renderCodeContent(file, fileData, container) {
                 <div class="code-actions">
                     <button class="code-action-btn" onclick="copyAllContent()" title="Copy all content">
                         <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="code-action-btn" onclick="downloadFile()" title="Download file">
-                        <i class="fas fa-download"></i>
                     </button>
                     <button class="code-action-btn" onclick="openSearch()" title="Search in file">
                         <i class="fas fa-search"></i>
@@ -997,13 +963,6 @@ function setTheme(theme) {
     document.querySelector(`.theme-buttons .control-btn[onclick="setTheme('${theme}')"]`).classList.add('active');
     
     applyCodeTheme();
-}
-
-function toggleTheme() {
-    const themes = ['light', 'dark', 'auto'];
-    const currentIndex = themes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    setTheme(themes[nextIndex]);
 }
 
 function applyCodeTheme() {
@@ -1156,31 +1115,11 @@ function scrollToSearchResult(index) {
 }
 
 // File actions
-function copyFilePath() {
-    if (!currentModalFile) return;
-    
-    const filePath = getRelativePath(currentModalFile.path);
-    copyToClipboard(filePath, 'File path copied to clipboard');
-}
-
 function copyAllContent() {
     const codeText = document.getElementById('codeText');
     if (codeText) {
         copyToClipboard(codeText.textContent, 'File content copied to clipboard');
     }
-}
-
-function downloadFile() {
-    if (!currentModalFile) return;
-    
-    const link = document.createElement('a');
-    link.href = `/api/browse/file-download?path=${encodeURIComponent(currentModalFile.path)}`;
-    link.download = currentModalFile.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showToast('Download started', 'success');
 }
 
 function toggleFullscreen() {

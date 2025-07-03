@@ -142,24 +142,12 @@ function handleModalKeyboard(e) {
             }
             break;
             
-        case 'd':
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                downloadFile();
-            }
-            break;
+
             
         case 'c':
             if (e.ctrlKey || e.metaKey && e.shiftKey) {
                 e.preventDefault();
                 copyAllContent();
-            }
-            break;
-            
-        case 't':
-            if (e.ctrlKey || e.metaKey) {
-                e.preventDefault();
-                toggleTheme();
             }
             break;
     }
@@ -632,10 +620,6 @@ function updateModalContent(file) {
                     <div class="file-actions-section">
                         <h3>Actions</h3>
                         <div class="action-buttons">
-                            <button class="action-btn" onclick="copyFilePath()" title="Copy file path">
-                                <i class="fas fa-copy"></i>
-                                Copy Path
-                            </button>
                             <button class="action-btn" onclick="copyAllContent()" title="Copy file content">
                                 <i class="fas fa-clipboard"></i>
                                 Copy Content
@@ -701,10 +685,6 @@ function updateModalContent(file) {
                             <div class="shortcut-item">
                                 <span class="shortcut-key">F11</span>
                                 <span class="shortcut-desc">Toggle fullscreen</span>
-                            </div>
-                            <div class="shortcut-item">
-                                <span class="shortcut-key">Ctrl+T</span>
-                                <span class="shortcut-desc">Toggle theme</span>
                             </div>
                             <div class="shortcut-item">
                                 <span class="shortcut-key">Esc</span>
@@ -801,9 +781,6 @@ function renderCodeContent(file, fileData, container) {
                 <div class="code-actions">
                     <button class="code-action-btn" onclick="copyAllContent()" title="Copy all content">
                         <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="code-action-btn" onclick="downloadFile()" title="Download file">
-                        <i class="fas fa-download"></i>
                     </button>
                     <button class="code-action-btn" onclick="openSearch()" title="Search in file">
                         <i class="fas fa-search"></i>
@@ -910,11 +887,6 @@ function setTheme(theme) {
     }
     
     applyCodeTheme();
-}
-
-function toggleTheme() {
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
 }
 
 function applyCodeTheme() {
@@ -1098,12 +1070,6 @@ function toggleWrap() {
 }
 
 // File actions
-function copyFilePath() {
-    if (!currentModalFile) return;
-    
-    copyToClipboard(currentModalFile.filepath, 'File path copied to clipboard');
-}
-
 function copyAllContent() {
     const codeText = document.getElementById('codeText');
     if (codeText) {
@@ -1111,19 +1077,6 @@ function copyAllContent() {
     } else {
         showToast('No content available to copy', 'warning');
     }
-}
-
-function downloadFile() {
-    if (!currentModalFile) return;
-    
-    const link = document.createElement('a');
-    link.href = `/api/files/${currentFileId}/download`;
-    link.download = currentModalFile.filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showToast('Download started', 'success');
 }
 
 function toggleFullscreen() {

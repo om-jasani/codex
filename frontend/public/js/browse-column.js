@@ -1,18 +1,23 @@
 /**
- * DC Codex - Column Navigation Browser JavaScript
- * macOS Finder-like column navigation interface
+ * DC Codex - Enhanced Column Navigation Browser JavaScript
+ * Professional IDE-like interface with advanced features
  */
 
 // Global state
 let folderStructure = null;
-let currentPath = [];  // Array of path segments for breadcrumb
-let columns = [];      // Array of column data
-let selectedItems = []; // Array of selected items per column
-let maxVisibleColumns = 5; // Maximum columns to show before scrolling
+let currentPath = [];
+let columns = [];
+let selectedItems = [];
+let maxVisibleColumns = 5;
+let currentModalFile = null;
+let currentTheme = 'light';
+let currentFontSize = 14;
+let searchTerm = '';
+let searchResults = [];
+let currentSearchIndex = 0;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    // Ensure modal is hidden on startup
     const modal = document.getElementById('filePreviewModal');
     if (modal) {
         modal.style.display = 'none';
@@ -22,15 +27,17 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeBrowser();
     loadInitialStructure();
     setupModalHandlers();
+    setupKeyboardShortcuts();
 });
 
 function initializeBrowser() {
-    // Set up authentication check
     checkAuthStatus();
-    
-    // Calculate max visible columns based on screen width
     updateMaxVisibleColumns();
     window.addEventListener('resize', updateMaxVisibleColumns);
+    
+    // Initialize theme from localStorage
+    currentTheme = localStorage.getItem('codexTheme') || 'light';
+    currentFontSize = parseInt(localStorage.getItem('codexFontSize')) || 14;
 }
 
 function updateMaxVisibleColumns() {
@@ -48,31 +55,120 @@ function updateMaxVisibleColumns() {
 
 function setupModalHandlers() {
     const modal = document.getElementById('filePreviewModal');
-    const closeBtn = document.getElementById('modalCloseBtn');
+    if (!modal) return;
     
     // Close modal handlers
-    closeBtn.addEventListener('click', closeFilePreviewModal);
+    const closeBtn = modal.querySelector('.modal-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeFilePreviewModal);
+    }
+    
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             closeFilePreviewModal();
         }
     });
-    
-    // Escape key to close modal
+}
+
+function setupKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('visible')) {
-            closeFilePreviewModal();
+        const modal = document.getElementById('filePreviewModal');
+        
+        if (modal && modal.classList.contains('visible')) {
+            handleModalKeyboard(e);
+        } else {
+            handleBrowserKeyboard(e);
         }
     });
 }
 
+function handleModalKeyboard(e) {
+    const modal = document.getElementById('filePreviewModal');
+    
+    switch(e.key) {
+        case 'Escape':
+            e.preventDefault();
+            closeFilePreviewModal();
+            break;
+            
+        case 'F11':
+            e.preventDefault();
+            toggleFullscreen();
+            break;
+            
+        case '+':
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                increaseFontSize();
+            }
+            break;
+            
+        case '-':
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                decreaseFontSize();
+            }
+            break;
+            
+        case '0':
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                resetFontSize();
+            }
+            break;
+            
+        case 'f':
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                openSearch();
+            }
+            break;
+            
+        case 'd':
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                downloadFile();
+            }
+            break;
+            
+        case 'c':
+            if (e.ctrlKey || e.metaKey && e.shiftKey) {
+                e.preventDefault();
+                copyAllContent();
+            }
+            break;
+            
+        case 't':
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                toggleTheme();
+            }
+            break;
+    }
+}
+
+function handleBrowserKeyboard(e) {
+    if (e.key === 'ArrowLeft' && e.ctrlKey) {
+        e.preventDefault();
+        navigateBackOneLevel();
+    } else if (e.key === 'ArrowRight' && e.ctrlKey) {
+        e.preventDefault();
+        const columns = document.querySelectorAll('.column');
+        if (columns.length > 0) {
+            const lastColumn = columns[columns.length - 1];
+            const firstItem = lastColumn.querySelector('.folder-item, .file-item');
+            if (firstItem) {
+                firstItem.focus();
+            }
+        }
+    }
+}
+
 async function checkAuthStatus() {
-    // Authentication is now handled by the main navigation in browse.html
-    // This function can be kept for backward compatibility but is no longer needed
+    // Authentication handled by main navigation
 }
 
 async function loadInitialStructure() {
-    // Show loading state
     showLoadingState();
     
     try {
@@ -83,7 +179,6 @@ async function loadInitialStructure() {
             folderStructure = data.structure;
             currentPath = [{ name: 'Root', path: data.root_path }];
             
-            // Initialize first column with root contents directly from structure
             const rootItems = data.structure || [];
             
             columns = [{
@@ -128,20 +223,11 @@ function showError(message) {
     const container = document.getElementById('columnNavigation');
     if (container) {
         container.innerHTML = `
-            <div class="empty-state">
+            <div class="empty-state error-state">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>Error Loading Repository</h3>
                 <p>${message}</p>
-                <button onclick="loadInitialStructure()" class="btn-retry" style="
-                    margin-top: 1rem;
-                    padding: 0.5rem 1rem;
-                    background: var(--primary-color);
-                    color: white;
-                    border: none;
-                    border-radius: 0.25rem;
-                    cursor: pointer;
-                    font-weight: 500;
-                ">
+                <button onclick="loadInitialStructure()" class="btn-retry">
                     <i class="fas fa-refresh"></i> Try Again
                 </button>
             </div>
@@ -157,15 +243,13 @@ function renderColumns() {
         return;
     }
     
-    // Store current scroll position and selection state
     const currentScrollLeft = container.scrollLeft;
-    const preservedSelections = [...selectedItems]; // Preserve current selections
+    const preservedSelections = [...selectedItems];
     
     container.innerHTML = '';
-    selectedItems = []; // Will rebuild this
+    selectedItems = [];
     
     columns.forEach((column, columnIndex) => {
-        // Skip file preview columns - we'll show them in modal instead
         if (column.isFilePreview) {
             return;
         }
@@ -177,25 +261,21 @@ function renderColumns() {
             return;
         }
         
-        // Add animation class for new columns
         if (columnIndex === columns.length - 1 && columns.length > 1) {
             columnElement.classList.add('column-slide-in');
         }
         
         container.appendChild(columnElement);
-        selectedItems.push(null); // Initialize selection state
+        selectedItems.push(null);
     });
     
-    // Restore active path visual indicators after DOM is created
     setTimeout(() => {
         restoreActivePathVisuals();
     }, 10);
     
-    // Auto-scroll to show the last column with smooth animation
     setTimeout(() => {
         scrollToActiveColumn();
         
-        // Remove animation class after animation completes
         const newColumn = container.querySelector('.column-slide-in');
         if (newColumn) {
             setTimeout(() => {
@@ -206,18 +286,14 @@ function renderColumns() {
 }
 
 function restoreActivePathVisuals() {
-    // For each path segment, find and highlight the corresponding item
     currentPath.forEach((pathItem, pathIndex) => {
-        if (pathIndex === 0) return; // Skip root
+        if (pathIndex === 0) return;
         
-        const columnIndex = pathIndex - 1; // Convert path index to column index
+        const columnIndex = pathIndex - 1;
         const column = document.querySelectorAll('.column')[columnIndex];
         
-        if (!column) {
-            return;
-        }
+        if (!column) return;
         
-        // Find the item in this column that matches the path
         const items = column.querySelectorAll('.folder-item, .file-item');
         items.forEach(itemElement => {
             const itemName = itemElement.dataset.itemName;
@@ -226,7 +302,6 @@ function restoreActivePathVisuals() {
             if (itemName === pathItem.name || itemPath === pathItem.path) {
                 itemElement.classList.add('selected');
                 
-                // If this isn't the last item in path, it should have next column arrow
                 if (pathIndex < currentPath.length - 1) {
                     itemElement.classList.add('has-next-column');
                 }
@@ -246,16 +321,16 @@ function createColumn(columnData, columnIndex) {
     column.className = 'column';
     column.dataset.columnIndex = columnIndex;
     
-    // Column header
     const header = document.createElement('div');
     header.className = 'column-header';
     header.innerHTML = `
-        <i class="fas fa-folder"></i>
-        <span>${columnData.title}</span>
-        <span class="item-count">(${columnData.items.length})</span>
+        <div class="column-title-section">
+            <i class="fas fa-folder"></i>
+            <span class="column-title">${columnData.title}</span>
+        </div>
+        <span class="item-count">${columnData.items.length} items</span>
     `;
     
-    // Column content
     const content = document.createElement('div');
     content.className = 'column-content';
     
@@ -268,7 +343,6 @@ function createColumn(columnData, columnIndex) {
             </div>
         `;
     } else {
-        // Sort items (folders first, then files)
         const sortedItems = [...columnData.items].sort((a, b) => {
             if (a.type !== b.type) {
                 return a.type === 'folder' ? -1 : 1;
@@ -295,7 +369,6 @@ function createColumnItem(item, columnIndex) {
     itemElement.dataset.itemPath = item.path;
     itemElement.dataset.itemType = item.type;
     
-    // Determine if folder has children for arrow indicator
     const hasChildren = item.type === 'folder' && (
         (item.children && item.children.length > 0) || 
         (item.item_count && item.item_count > 0)
@@ -305,25 +378,22 @@ function createColumnItem(item, columnIndex) {
         itemElement.classList.add('has-children');
     }
     
-    // Get file icon based on extension
     const icon = getFileIcon(item);
-    
-    // Calculate item count for folders
-    let itemMeta = '';
-    if (item.type === 'folder' && item.children) {
-        const count = item.children.length;
-        itemMeta = count > 0 ? `${count} item${count !== 1 ? 's' : ''}` : 'Empty';
-    } else {
-        itemMeta = formatItemMeta(item);
-    }
+    const itemMeta = formatItemMeta(item);
+    const fileExtension = item.type === 'file' ? getFileExtension(item.name) : '';
     
     itemElement.innerHTML = `
-        <i class="${icon.class} ${item.type === 'folder' ? 'folder-icon' : 'file-icon'}"></i>
-        <span class="item-name">${item.name}</span>
-        <span class="item-meta">${itemMeta}</span>
+        <div class="item-main">
+            <i class="${icon.class} ${item.type === 'folder' ? 'folder-icon' : 'file-icon'}"></i>
+            <div class="item-details">
+                <span class="item-name">${escapeHtml(item.name)}</span>
+                <span class="item-meta">${itemMeta}</span>
+            </div>
+        </div>
+        ${fileExtension ? `<span class="file-extension">${fileExtension.toUpperCase()}</span>` : ''}
+        ${hasChildren ? '<i class="fas fa-chevron-right item-arrow"></i>' : ''}
     `;
     
-    // Add click handler
     itemElement.addEventListener('click', (e) => {
         e.preventDefault();
         handleItemClick(item, columnIndex, itemElement);
@@ -340,87 +410,68 @@ function getFileIcon(item) {
     const extension = item.name.split('.').pop().toLowerCase();
     
     const iconMap = {
-        // Code files
-        'py': { class: 'fas fa-file-code' },
-        'js': { class: 'fas fa-file-code' },
-        'ts': { class: 'fas fa-file-code' },
-        'html': { class: 'fas fa-file-code' },
-        'css': { class: 'fas fa-file-code' },
-        'c': { class: 'fas fa-file-code' },
-        'cpp': { class: 'fas fa-file-code' },
-        'h': { class: 'fas fa-file-code' },
-        'java': { class: 'fas fa-file-code' },
-        'cs': { class: 'fas fa-file-code' },
-        'php': { class: 'fas fa-file-code' },
-        'rb': { class: 'fas fa-file-code' },
-        'go': { class: 'fas fa-file-code' },
-        'rs': { class: 'fas fa-file-code' },
-        'swift': { class: 'fas fa-file-code' },
-        'kt': { class: 'fas fa-file-code' },
-        'scala': { class: 'fas fa-file-code' },
-        'ino': { class: 'fas fa-file-code' },
-        
-        // Config files
-        'json': { class: 'fas fa-file-code' },
-        'xml': { class: 'fas fa-file-code' },
-        'yml': { class: 'fas fa-file-code' },
-        'yaml': { class: 'fas fa-file-code' },
-        'toml': { class: 'fas fa-file-code' },
-        'ini': { class: 'fas fa-file-code' },
-        'conf': { class: 'fas fa-file-code' },
-        
-        // Documents
-        'pdf': { class: 'fas fa-file-pdf' },
-        'doc': { class: 'fas fa-file-word' },
-        'docx': { class: 'fas fa-file-word' },
-        'xls': { class: 'fas fa-file-excel' },
-        'xlsx': { class: 'fas fa-file-excel' },
-        'ppt': { class: 'fas fa-file-powerpoint' },
-        'pptx': { class: 'fas fa-file-powerpoint' },
-        
-        // Images
-        'jpg': { class: 'fas fa-file-image' },
-        'jpeg': { class: 'fas fa-file-image' },
-        'png': { class: 'fas fa-file-image' },
-        'gif': { class: 'fas fa-file-image' },
-        'svg': { class: 'fas fa-file-image' },
-        'bmp': { class: 'fas fa-file-image' },
-        'ico': { class: 'fas fa-file-image' },
-        
-        // Archives
-        'zip': { class: 'fas fa-file-archive' },
-        'rar': { class: 'fas fa-file-archive' },
-        '7z': { class: 'fas fa-file-archive' },
-        'tar': { class: 'fas fa-file-archive' },
-        'gz': { class: 'fas fa-file-archive' },
-        
-        // Media
-        'mp4': { class: 'fas fa-file-video' },
-        'avi': { class: 'fas fa-file-video' },
-        'mov': { class: 'fas fa-file-video' },
-        'wmv': { class: 'fas fa-file-video' },
-        'mp3': { class: 'fas fa-file-audio' },
-        'wav': { class: 'fas fa-file-audio' },
-        'flac': { class: 'fas fa-file-audio' },
-        
-        // Text files
-        'txt': { class: 'fas fa-file-alt' },
-        'md': { class: 'fas fa-file-alt' },
-        'readme': { class: 'fas fa-file-alt' },
-        'log': { class: 'fas fa-file-alt' },
+        'py': { class: 'fab fa-python', color: '#3776ab' },
+        'js': { class: 'fab fa-js-square', color: '#f7df1e' },
+        'ts': { class: 'fab fa-js-square', color: '#3178c6' },
+        'html': { class: 'fab fa-html5', color: '#e34f26' },
+        'css': { class: 'fab fa-css3-alt', color: '#1572b6' },
+        'c': { class: 'fas fa-file-code', color: '#00599c' },
+        'cpp': { class: 'fas fa-file-code', color: '#00599c' },
+        'h': { class: 'fas fa-file-code', color: '#00599c' },
+        'java': { class: 'fab fa-java', color: '#ed8b00' },
+        'cs': { class: 'fas fa-file-code', color: '#239120' },
+        'php': { class: 'fab fa-php', color: '#777bb4' },
+        'rb': { class: 'fas fa-gem', color: '#cc342d' },
+        'go': { class: 'fas fa-file-code', color: '#00add8' },
+        'rs': { class: 'fas fa-file-code', color: '#000000' },
+        'swift': { class: 'fas fa-file-code', color: '#fa7343' },
+        'kt': { class: 'fas fa-file-code', color: '#7f52ff' },
+        'scala': { class: 'fas fa-file-code', color: '#dc322f' },
+        'ino': { class: 'fas fa-microchip', color: '#00979d' },
+        'json': { class: 'fas fa-file-code', color: '#000000' },
+        'xml': { class: 'fas fa-file-code', color: '#e34f26' },
+        'yml': { class: 'fas fa-file-code', color: '#cb171e' },
+        'yaml': { class: 'fas fa-file-code', color: '#cb171e' },
+        'toml': { class: 'fas fa-file-code', color: '#9c4221' },
+        'ini': { class: 'fas fa-file-code', color: '#6b6b6b' },
+        'conf': { class: 'fas fa-file-code', color: '#6b6b6b' },
+        'pdf': { class: 'fas fa-file-pdf', color: '#dc2626' },
+        'doc': { class: 'fas fa-file-word', color: '#2b579a' },
+        'docx': { class: 'fas fa-file-word', color: '#2b579a' },
+        'xls': { class: 'fas fa-file-excel', color: '#217346' },
+        'xlsx': { class: 'fas fa-file-excel', color: '#217346' },
+        'ppt': { class: 'fas fa-file-powerpoint', color: '#d24726' },
+        'pptx': { class: 'fas fa-file-powerpoint', color: '#d24726' },
+        'jpg': { class: 'fas fa-file-image', color: '#059669' },
+        'jpeg': { class: 'fas fa-file-image', color: '#059669' },
+        'png': { class: 'fas fa-file-image', color: '#059669' },
+        'gif': { class: 'fas fa-file-image', color: '#059669' },
+        'svg': { class: 'fas fa-file-image', color: '#059669' },
+        'zip': { class: 'fas fa-file-archive', color: '#eab308' },
+        'rar': { class: 'fas fa-file-archive', color: '#eab308' },
+        '7z': { class: 'fas fa-file-archive', color: '#eab308' },
+        'tar': { class: 'fas fa-file-archive', color: '#eab308' },
+        'gz': { class: 'fas fa-file-archive', color: '#eab308' },
+        'mp4': { class: 'fas fa-file-video', color: '#dc2626' },
+        'avi': { class: 'fas fa-file-video', color: '#dc2626' },
+        'mov': { class: 'fas fa-file-video', color: '#dc2626' },
+        'mp3': { class: 'fas fa-file-audio', color: '#7c3aed' },
+        'wav': { class: 'fas fa-file-audio', color: '#7c3aed' },
+        'txt': { class: 'fas fa-file-alt', color: '#64748b' },
+        'md': { class: 'fab fa-markdown', color: '#000000' },
+        'readme': { class: 'fas fa-file-alt', color: '#64748b' },
+        'log': { class: 'fas fa-file-alt', color: '#64748b' },
     };
     
-    return iconMap[extension] || { class: 'fas fa-file' };
+    return iconMap[extension] || { class: 'fas fa-file', color: '#64748b' };
 }
 
 function formatItemMeta(item) {
     if (item.type === 'folder') {
-        // Check for children array first, then fallback to item_count
         const childCount = item.children ? item.children.length : (item.item_count || 0);
         return childCount > 0 ? `${childCount} items` : 'Empty';
     }
     
-    // For files, show file size if available
     if (item.size) {
         return formatFileSize(item.size);
     }
@@ -437,31 +488,25 @@ function formatFileSize(bytes) {
 }
 
 async function handleItemClick(item, columnIndex, itemElement) {
-    // Remove ALL selection and arrow indicators from all items in all columns
     document.querySelectorAll('.file-item, .folder-item').forEach(el => {
         el.classList.remove('selected', 'has-next-column');
     });
     
-    // Select clicked item
     itemElement.classList.add('selected');
     selectedItems[columnIndex] = item;
     
-    // Remove all columns after the current one from DOM
     const container = document.getElementById('columnNavigation');
     const allColumns = container.querySelectorAll('.column');
     for (let i = allColumns.length - 1; i > columnIndex; i--) {
         allColumns[i].remove();
     }
     
-    // Remove all columns after the current one from data
     columns = columns.slice(0, columnIndex + 1);
     currentPath = currentPath.slice(0, columnIndex + 1);
     
     if (item.type === 'folder') {
-        // Add arrow indicator immediately
         itemElement.classList.add('has-next-column');
         
-        // For deep navigation (beyond initial structure), load fresh data from API
         const shouldLoadFresh = columnIndex > 2 || !item.children || item.children.length === 0;
         
         let newColumnData;
@@ -493,7 +538,6 @@ async function handleItemClick(item, columnIndex, itemElement) {
                 };
             }
         } else {
-            // Use existing children data for fast navigation
             newColumnData = {
                 title: item.name,
                 path: item.path,
@@ -501,68 +545,38 @@ async function handleItemClick(item, columnIndex, itemElement) {
             };
         }
         
-        // Add new column to data
         columns.push(newColumnData);
         currentPath.push({ name: item.name, path: item.path });
         
-        // Create and add the new column to DOM
         const newColumnElement = createColumn(newColumnData, columnIndex + 1);
         newColumnElement.classList.add('column-slide-in');
         container.appendChild(newColumnElement);
         
-        // Update breadcrumb
         updateBreadcrumb();
         
-        // Scroll to show the new column
         setTimeout(() => {
             scrollToActiveColumn();
             
-            // Remove animation class after animation completes
             setTimeout(() => {
                 newColumnElement.classList.remove('column-slide-in');
             }, 300);
         }, 100);
         
     } else {
-        // Show file preview in modal
         await showFilePreview(item);
     }
 }
 
-async function loadFolderContents(folder, columnIndex) {
+async function showFilePreview(file) {
+    currentModalFile = file;
+    
     try {
-        const response = await fetch(`/api/browse/folder?path=${encodeURIComponent(folder.path)}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            // Add new column
-            columns.push({
-                title: folder.name,
-                path: folder.path,
-                items: data.contents || []
-            });
-            
-            // Update current path
-            currentPath.push({ name: folder.name, path: folder.path });
-        } else {
-            showError('Failed to load folder: ' + (data.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Error loading folder:', error);
-        showError('Failed to load folder contents');
-    }
-}
-
-async function showFilePreview(file, columnIndex) {
-    try {
-        // Show loading in modal
         showFilePreviewModal(file, null, true);
         
         const response = await fetch(`/api/browse/file?path=${encodeURIComponent(file.path)}`);
         const data = await response.json();
         
         if (data.success) {
-            // Show file content in modal
             showFilePreviewModal(file, data, false);
         } else {
             showFilePreviewModal(file, { error: data.error || 'Failed to load file' }, false);
@@ -575,98 +589,235 @@ async function showFilePreview(file, columnIndex) {
 
 function showFilePreviewModal(file, fileData, isLoading = false) {
     const modal = document.getElementById('filePreviewModal');
-    const fileName = document.getElementById('modalFileName');
-    const fileIcon = document.getElementById('modalFileIcon');
-    const fileMeta = document.getElementById('modalFileMeta');
-    const fileBody = document.getElementById('modalFileBody');
-    
-    if (!modal || !fileName || !fileIcon || !fileMeta || !fileBody) {
-        console.error('Modal elements not found');
+    if (!modal) {
+        console.error('Modal element not found');
         return;
     }
     
-    // Set file name and icon
-    fileName.textContent = file.name;
-    fileIcon.className = `file-icon ${getItemIcon(file)}`;
+    // Update modal content
+    updateModalContent(file, fileData, isLoading);
     
-    if (isLoading) {
-        // Show loading state
-        fileMeta.innerHTML = '';
-        fileBody.innerHTML = `
-            <div class="file-preview-loading">
-                <div class="spinner"></div>
-                <span>Loading file content...</span>
-            </div>
-        `;
-    } else if (fileData && fileData.error) {
-        // Show error state
-        fileMeta.innerHTML = '';
-        fileBody.innerHTML = `
-            <div class="file-preview-error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Unable to load file</h3>
-                <p>${fileData.error}</p>
-            </div>
-        `;
-    } else if (fileData) {
-        // Show file metadata
-        const fileSize = formatFileSize(fileData.size || 0);
-        const fileType = getFileExtension(file.name).toUpperCase() || 'FILE';
-        const relativePath = getRelativePath(file.path);
-        
-        fileMeta.innerHTML = `
-            <div class="file-meta-item">
-                <span class="file-meta-label">File Type</span>
-                <span class="file-meta-value">${fileType}</span>
-            </div>
-            <div class="file-meta-item">
-                <span class="file-meta-label">File Size</span>
-                <span class="file-meta-value">${fileSize}</span>
-            </div>
-            <div class="file-meta-item">
-                <span class="file-meta-label">Last Modified</span>
-                <span class="file-meta-value">${fileData.modified ? new Date(fileData.modified).toLocaleDateString() : 'Unknown'}</span>
-            </div>
-            <div class="file-meta-item">
-                <span class="file-meta-label">File Path</span>
-                <span class="file-meta-value" title="${relativePath}">${relativePath}</span>
-            </div>
-        `;
-        
-        // Show file content based on type
-        renderFileContent(file, fileData, fileBody);
-    }
-    
-    // Show modal with smooth animation
+    // Show modal with animation
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
     
-    // Trigger animation after display is set
     requestAnimationFrame(() => {
         modal.classList.add('visible');
     });
 }
 
+function updateModalContent(file, fileData, isLoading) {
+    // Update header
+    updateModalHeader(file);
+    
+    // Update sidebar
+    updateModalSidebar(file, fileData);
+    
+    // Update main content
+    updateModalMainContent(file, fileData, isLoading);
+}
+
+function updateModalHeader(file) {
+    const fileName = document.getElementById('modalFileName');
+    const fileIcon = document.querySelector('#filePreviewModal .modal-title .file-icon');
+    
+    if (fileName) fileName.textContent = file.name;
+    
+    if (fileIcon) {
+        const icon = getFileIcon(file);
+        fileIcon.className = `file-icon ${icon.class}`;
+        fileIcon.style.color = icon.color || '#3b82f6';
+    }
+}
+
+function updateModalSidebar(file, fileData) {
+    const sidebar = document.querySelector('#filePreviewModal .modal-sidebar');
+    if (!sidebar) return;
+    
+    const fileSize = fileData && fileData.size ? formatFileSize(fileData.size) : 'Unknown';
+    const fileType = getFileExtension(file.name).toUpperCase() || 'FILE';
+    const relativePath = getRelativePath(file.path);
+    const lastModified = fileData && fileData.modified ? 
+        new Date(fileData.modified).toLocaleDateString() : 'Unknown';
+    
+    sidebar.innerHTML = `
+        <div class="file-info-section">
+            <h3>File Information</h3>
+            <div class="file-meta-grid">
+                <div class="file-meta-item">
+                    <span class="file-meta-label">Name</span>
+                    <span class="file-meta-value" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
+                </div>
+                <div class="file-meta-item">
+                    <span class="file-meta-label">Type</span>
+                    <span class="file-meta-value">${fileType}</span>
+                </div>
+                <div class="file-meta-item">
+                    <span class="file-meta-label">Size</span>
+                    <span class="file-meta-value">${fileSize}</span>
+                </div>
+                <div class="file-meta-item">
+                    <span class="file-meta-label">Modified</span>
+                    <span class="file-meta-value">${lastModified}</span>
+                </div>
+                <div class="file-meta-item">
+                    <span class="file-meta-label">Path</span>
+                    <span class="file-meta-value" title="${relativePath}">${escapeHtml(relativePath)}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="file-actions-section">
+            <h3>Actions</h3>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="copyFilePath()" title="Copy file path">
+                    <i class="fas fa-copy"></i>
+                    Copy Path
+                </button>
+                <button class="action-btn" onclick="copyAllContent()" title="Copy file content">
+                    <i class="fas fa-clipboard"></i>
+                    Copy Content
+                </button>
+                <button class="action-btn" onclick="downloadFile()" title="Download file">
+                    <i class="fas fa-download"></i>
+                    Download
+                </button>
+                <button class="action-btn" onclick="toggleFullscreen()" title="Toggle fullscreen">
+                    <i class="fas fa-expand"></i>
+                    Fullscreen
+                </button>
+            </div>
+        </div>
+        
+        <div class="file-controls-section">
+            <h3>View Controls</h3>
+            <div class="control-groups">
+                <div class="control-group">
+                    <label>Theme</label>
+                    <div class="theme-buttons">
+                        <button class="control-btn ${currentTheme === 'light' ? 'active' : ''}" onclick="setTheme('light')">
+                            <i class="fas fa-sun"></i>
+                        </button>
+                        <button class="control-btn ${currentTheme === 'dark' ? 'active' : ''}" onclick="setTheme('dark')">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                        <button class="control-btn ${currentTheme === 'auto' ? 'active' : ''}" onclick="setTheme('auto')">
+                            <i class="fas fa-adjust"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>Font Size</label>
+                    <div class="font-controls">
+                        <button class="control-btn" onclick="decreaseFontSize()" title="Decrease font size">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <span class="font-size-display">${currentFontSize}px</span>
+                        <button class="control-btn" onclick="increaseFontSize()" title="Increase font size">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label>Search</label>
+                    <div class="search-controls">
+                        <button class="control-btn" onclick="openSearch()" title="Search in file">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="keyboard-shortcuts-section">
+            <h3>Shortcuts</h3>
+            <div class="shortcuts-list">
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+C</span>
+                    <span class="shortcut-desc">Copy content</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+F</span>
+                    <span class="shortcut-desc">Search</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+D</span>
+                    <span class="shortcut-desc">Download</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">F11</span>
+                    <span class="shortcut-desc">Fullscreen</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Ctrl+T</span>
+                    <span class="shortcut-desc">Toggle theme</span>
+                </div>
+                <div class="shortcut-item">
+                    <span class="shortcut-key">Esc</span>
+                    <span class="shortcut-desc">Close</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function updateModalMainContent(file, fileData, isLoading) {
+    const mainContent = document.querySelector('#filePreviewModal .modal-main');
+    if (!mainContent) return;
+    
+    if (isLoading) {
+        mainContent.innerHTML = `
+            <div class="file-preview-loading">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                </div>
+                <h3>Loading file content...</h3>
+                <p>Please wait while we fetch the file content.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    if (fileData && fileData.error) {
+        mainContent.innerHTML = `
+            <div class="file-preview-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Unable to load file</h3>
+                <p>${escapeHtml(fileData.error)}</p>
+                <button class="retry-btn" onclick="showFilePreview(currentModalFile)">
+                    <i class="fas fa-refresh"></i>
+                    Try Again
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    if (fileData) {
+        renderFileContent(file, fileData, mainContent);
+    }
+}
+
 function renderFileContent(file, fileData, container) {
     const ext = getFileExtension(file.name);
-    const mime = fileData.mime_type || '';
     
     if (fileData.type === 'image') {
-        // Image files
         container.innerHTML = `
-            <div class="file-content-wrapper">
+            <div class="file-content-wrapper image-wrapper">
                 <div class="image-preview">
-                    <img src="${fileData.content}" alt="${file.name}" loading="lazy">
+                    <img src="${fileData.content}" alt="${escapeHtml(file.name)}" loading="lazy">
                 </div>
             </div>
         `;
     } else if (fileData.type === 'pdf') {
-        // PDF files with embedded viewer
         const inlineUrl = fileData.inline_url || `/api/browse/file-inline?path=${encodeURIComponent(file.path)}`;
         container.innerHTML = `
-            <div class="file-content-wrapper">
+            <div class="file-content-wrapper pdf-wrapper">
                 <div class="pdf-preview">
-                    <iframe class="pdf-embed" src="${inlineUrl}#toolbar=1&navpanes=1&scrollbar=1" type="application/pdf" style="width: 100%; height: 100%; border: none;">
+                    <iframe class="pdf-embed" src="${inlineUrl}#toolbar=1&navpanes=1&scrollbar=1" type="application/pdf">
                         <div class="pdf-preview-info">
                             <i class="fas fa-file-pdf"></i>
                             <h3>PDF Preview</h3>
@@ -677,118 +828,538 @@ function renderFileContent(file, fileData, container) {
             </div>
         `;
     } else if (fileData.content !== undefined || fileData.type === 'text') {
-        // Text files (including code, JSON, XML, HTML, etc.)
-        let content = fileData.content || '';
-        
-        if (!content) {
-            container.innerHTML = `
-                <div class="file-content-wrapper">
-                    <div class="file-error">
-                        <i class="fas fa-file-times"></i>
-                        <p>No content available</p>
-                        <small>The file appears to be empty or could not be read.</small>
-                    </div>
-                </div>
-            `;
-            return;
-        }
-        
-        // Format JSON and XML for better readability
-        if (ext === 'json') {
-            try {
-                const parsed = JSON.parse(content);
-                content = JSON.stringify(parsed, null, 2);
-            } catch (e) {
-                // Keep original content if parsing fails
-            }
-        } else if (ext === 'xml') {
-            try {
-                // Basic XML formatting (simple indentation)
-                content = content.replace(/></g, '>\n<');
-            } catch (e) {
-                // Keep original content if formatting fails
-            }
-        }
-        
-        // Ensure content is fully displayed
-        const lines = content.split('\n');
-        const lineNumbers = lines.map((_, i) => (i + 1).toString().padStart(4, ' ')).join('\n');
-        
-        container.innerHTML = `
-            <div class="file-content-wrapper">
-                <div class="code-container">
-                    <pre class="code-preview"><code id="file-code-content">${escapeHtml(content)}</code></pre>
-                </div>
-            </div>
-        `;
-        
-        // Apply syntax highlighting
-        setTimeout(() => {
-            if (window.Prism) {
-                const codeElement = container.querySelector('#file-code-content');
-                if (codeElement) {
-                    const language = getPrismLanguage(`.${ext}`);
-                    codeElement.className = language;
-                    try {
-                        Prism.highlightElement(codeElement);
-                    } catch (e) {
-                        // Syntax highlighting failed, continue without it
-                    }
-                }
-            }
-            
-            // Re-run Prism highlighting if available
-            if (window.Prism) {
-                Prism.highlightAll();
-            }
-        }, 150);
+        renderCodeContent(file, fileData, container);
     } else {
-        // Fallback for unknown file types
         container.innerHTML = `
             <div class="file-content-wrapper">
-                <div class="file-error">
+                <div class="file-preview-error">
                     <i class="fas fa-file-times"></i>
-                    <p>Unable to preview this file</p>
-                    <small>This file type cannot be displayed or the file content is not available.</small>
+                    <h3>Preview not available</h3>
+                    <p>This file type cannot be displayed or the file content is not available.</p>
+                    <button class="action-btn" onclick="downloadFile()">
+                        <i class="fas fa-download"></i>
+                        Download File
+                    </button>
                 </div>
             </div>
         `;
     }
 }
 
-function generateLineNumbers(content) {
+function renderCodeContent(file, fileData, container) {
+    let content = fileData.content || '';
+    
+    if (!content) {
+        container.innerHTML = `
+            <div class="file-content-wrapper">
+                <div class="file-preview-error">
+                    <i class="fas fa-file-times"></i>
+                    <h3>No content available</h3>
+                    <p>The file appears to be empty or could not be read.</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    // Format JSON and XML for better readability
+    const ext = getFileExtension(file.name);
+    if (ext === 'json') {
+        try {
+            const parsed = JSON.parse(content);
+            content = JSON.stringify(parsed, null, 2);
+        } catch (e) {
+            // Keep original content if parsing fails
+        }
+    } else if (ext === 'xml') {
+        try {
+            content = formatXml(content);
+        } catch (e) {
+            // Keep original content if formatting fails
+        }
+    }
+    
     const lines = content.split('\n');
-    return lines.map((_, i) => (i + 1).toString().padStart(4, ' ')).join('\n');
+    const lineNumbers = lines.map((_, i) => (i + 1).toString()).join('\n');
+    
+    container.innerHTML = `
+        <div class="file-content-wrapper code-wrapper" data-theme="${currentTheme}">
+            <div class="code-header">
+                <div class="code-title">
+                    <i class="${getFileIcon(file).class}"></i>
+                    <span>${escapeHtml(file.name)}</span>
+                    <span class="line-count">${lines.length} lines</span>
+                </div>
+                <div class="code-actions">
+                    <button class="code-action-btn" onclick="copyAllContent()" title="Copy all content">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="code-action-btn" onclick="downloadFile()" title="Download file">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="code-action-btn" onclick="openSearch()" title="Search in file">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-bar" id="searchBar" style="display: none;">
+                <div class="search-input-group">
+                    <input type="text" id="searchInput" placeholder="Search in file..." onkeyup="searchInFile(event)">
+                    <button onclick="findNext()" title="Find next">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button onclick="findPrevious()" title="Find previous">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                    <span class="search-results" id="searchResults"></span>
+                    <button onclick="closeSearch()" title="Close search">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="code-content" id="codeContent">
+                <div class="line-numbers" id="lineNumbers">${lineNumbers}</div>
+                <div class="code-scroll-container">
+                    <pre class="code-display" id="codeDisplay"><code id="codeText" class="${getPrismLanguage(`.${ext}`)}" style="font-size: ${currentFontSize}px;">${escapeHtml(content)}</code></pre>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Apply syntax highlighting
+    setTimeout(() => {
+        if (window.Prism) {
+            const codeElement = container.querySelector('#codeText');
+            if (codeElement) {
+                try {
+                    Prism.highlightElement(codeElement);
+                } catch (e) {
+                    console.warn('Syntax highlighting failed:', e);
+                }
+            }
+        }
+        
+        // Sync scroll between line numbers and code
+        setupScrollSync();
+        
+        // Apply theme
+        applyCodeTheme();
+        
+    }, 100);
+}
+
+function setupScrollSync() {
+    const lineNumbers = document.getElementById('lineNumbers');
+    const codeScrollContainer = document.querySelector('.code-scroll-container');
+    
+    if (lineNumbers && codeScrollContainer) {
+        codeScrollContainer.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = codeScrollContainer.scrollTop;
+        });
+    }
+}
+
+function formatXml(xml) {
+    const PADDING = ' '.repeat(2);
+    const reg = /(>)(<)(\/*)/g;
+    let formatted = xml.replace(reg, '$1\r\n$2$3');
+    let pad = 0;
+    
+    return formatted.split('\r\n').map(line => {
+        let indent = 0;
+        if (line.match(/.+<\/\w[^>]*>$/)) {
+            indent = 0;
+        } else if (line.match(/^<\/\w/) && pad > 0) {
+            pad -= 1;
+        } else if (line.match(/^<\w[^>]*[^\/]>.*$/)) {
+            indent = 1;
+        } else {
+            indent = 0;
+        }
+        
+        const result = PADDING.repeat(pad) + line;
+        pad += indent;
+        return result;
+    }).join('\n');
+}
+
+// Theme management
+function setTheme(theme) {
+    currentTheme = theme;
+    localStorage.setItem('codexTheme', theme);
+    
+    // Update UI
+    document.querySelectorAll('.theme-buttons .control-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`.theme-buttons .control-btn[onclick="setTheme('${theme}')"]`).classList.add('active');
+    
+    applyCodeTheme();
+}
+
+function toggleTheme() {
+    const themes = ['light', 'dark', 'auto'];
+    const currentIndex = themes.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setTheme(themes[nextIndex]);
+}
+
+function applyCodeTheme() {
+    const wrapper = document.querySelector('.code-wrapper');
+    if (wrapper) {
+        wrapper.setAttribute('data-theme', currentTheme);
+    }
+}
+
+// Font size management
+function increaseFontSize() {
+    if (currentFontSize < 24) {
+        currentFontSize += 1;
+        updateFontSize();
+    }
+}
+
+function decreaseFontSize() {
+    if (currentFontSize > 8) {
+        currentFontSize -= 1;
+        updateFontSize();
+    }
+}
+
+function resetFontSize() {
+    currentFontSize = 14;
+    updateFontSize();
+}
+
+function updateFontSize() {
+    localStorage.setItem('codexFontSize', currentFontSize.toString());
+    
+    const codeText = document.getElementById('codeText');
+    const lineNumbers = document.getElementById('lineNumbers');
+    const fontDisplay = document.querySelector('.font-size-display');
+    
+    if (codeText) codeText.style.fontSize = currentFontSize + 'px';
+    if (lineNumbers) lineNumbers.style.fontSize = currentFontSize + 'px';
+    if (fontDisplay) fontDisplay.textContent = currentFontSize + 'px';
+}
+
+// Search functionality
+function openSearch() {
+    const searchBar = document.getElementById('searchBar');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (searchBar) {
+        searchBar.style.display = 'block';
+        if (searchInput) {
+            searchInput.focus();
+        }
+    }
+}
+
+function closeSearch() {
+    const searchBar = document.getElementById('searchBar');
+    if (searchBar) {
+        searchBar.style.display = 'none';
+    }
+    clearSearchHighlights();
+}
+
+function searchInFile(event) {
+    if (event.key === 'Enter') {
+        findNext();
+        return;
+    }
+    
+    if (event.key === 'Escape') {
+        closeSearch();
+        return;
+    }
+    
+    const query = event.target.value.toLowerCase();
+    if (query.length < 2) {
+        clearSearchHighlights();
+        updateSearchResults(0, 0);
+        return;
+    }
+    
+    performSearch(query);
+}
+
+function performSearch(query) {
+    const codeText = document.getElementById('codeText');
+    if (!codeText) return;
+    
+    const content = codeText.textContent.toLowerCase();
+    searchResults = [];
+    searchTerm = query;
+    currentSearchIndex = 0;
+    
+    let index = content.indexOf(query);
+    while (index !== -1) {
+        searchResults.push(index);
+        index = content.indexOf(query, index + 1);
+    }
+    
+    highlightSearchResults();
+    updateSearchResults(searchResults.length, currentSearchIndex + 1);
+    
+    if (searchResults.length > 0) {
+        scrollToSearchResult(0);
+    }
+}
+
+function findNext() {
+    if (searchResults.length === 0) return;
+    
+    currentSearchIndex = (currentSearchIndex + 1) % searchResults.length;
+    updateSearchResults(searchResults.length, currentSearchIndex + 1);
+    scrollToSearchResult(currentSearchIndex);
+}
+
+function findPrevious() {
+    if (searchResults.length === 0) return;
+    
+    currentSearchIndex = currentSearchIndex === 0 ? searchResults.length - 1 : currentSearchIndex - 1;
+    updateSearchResults(searchResults.length, currentSearchIndex + 1);
+    scrollToSearchResult(currentSearchIndex);
+}
+
+function highlightSearchResults() {
+    // This would require more complex implementation
+    // For now, we'll use browser's built-in find functionality
+    // In a real implementation, you'd manipulate the DOM to add highlight spans
+}
+
+function clearSearchHighlights() {
+    // Clear any search highlights
+    searchResults = [];
+    currentSearchIndex = 0;
+    updateSearchResults(0, 0);
+}
+
+function updateSearchResults(total, current) {
+    const resultsDisplay = document.getElementById('searchResults');
+    if (resultsDisplay) {
+        if (total === 0) {
+            resultsDisplay.textContent = 'No results';
+        } else {
+            resultsDisplay.textContent = `${current} of ${total}`;
+        }
+    }
+}
+
+function scrollToSearchResult(index) {
+    // This would scroll to the specific search result
+    // Implementation depends on how search highlighting is done
+}
+
+// File actions
+function copyFilePath() {
+    if (!currentModalFile) return;
+    
+    const filePath = getRelativePath(currentModalFile.path);
+    copyToClipboard(filePath, 'File path copied to clipboard');
+}
+
+function copyAllContent() {
+    const codeText = document.getElementById('codeText');
+    if (codeText) {
+        copyToClipboard(codeText.textContent, 'File content copied to clipboard');
+    }
+}
+
+function downloadFile() {
+    if (!currentModalFile) return;
+    
+    const link = document.createElement('a');
+    link.href = `/api/browse/file-download?path=${encodeURIComponent(currentModalFile.path)}`;
+    link.download = currentModalFile.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Download started', 'success');
+}
+
+function toggleFullscreen() {
+    const modal = document.getElementById('filePreviewModal');
+    if (!modal) return;
+    
+    modal.classList.toggle('fullscreen');
+    
+    const btn = document.querySelector('button[onclick="toggleFullscreen()"]');
+    if (btn) {
+        const icon = btn.querySelector('i');
+        if (modal.classList.contains('fullscreen')) {
+            icon.className = 'fas fa-compress';
+            btn.title = 'Exit fullscreen';
+        } else {
+            icon.className = 'fas fa-expand';
+            btn.title = 'Enter fullscreen';
+        }
+    }
+}
+
+function copyToClipboard(text, successMessage) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(successMessage, 'success');
+        }).catch(() => {
+            fallbackCopyToClipboard(text, successMessage);
+        });
+    } else {
+        fallbackCopyToClipboard(text, successMessage);
+    }
+}
+
+function fallbackCopyToClipboard(text, successMessage) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        showToast(successMessage, 'success');
+    } catch (err) {
+        showToast('Failed to copy to clipboard', 'error');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info-circle'}"></i>
+        <span>${escapeHtml(message)}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
 }
 
 function closeFilePreviewModal() {
     const modal = document.getElementById('filePreviewModal');
     if (modal && modal.classList.contains('visible')) {
-        // Start closing animation
         modal.classList.remove('visible');
         
-        // Wait for animation to complete before hiding
         setTimeout(() => {
             modal.style.display = 'none';
-            document.body.style.overflow = ''; // Restore background scrolling
-        }, 300); // Match CSS transition duration
+            document.body.style.overflow = '';
+            currentModalFile = null;
+        }, 300);
     }
 }
 
-function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+function updateBreadcrumb() {
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (!breadcrumb) return;
+    
+    breadcrumb.innerHTML = '';
+    
+    currentPath.forEach((pathItem, index) => {
+        if (index > 0) {
+            const separator = document.createElement('span');
+            separator.className = 'breadcrumb-separator';
+            separator.textContent = '/';
+            breadcrumb.appendChild(separator);
+        }
+        
+        const item = document.createElement('div');
+        item.className = 'breadcrumb-item';
+        
+        if (index < currentPath.length - 1) {
+            item.classList.add('clickable');
+            item.addEventListener('click', () => navigateToBreadcrumbItem(index));
+        }
+        
+        if (index === currentPath.length - 1) {
+            item.classList.add('active');
+        }
+        
+        item.innerHTML = `
+            <i class="fas ${index === 0 ? 'fa-home' : 'fa-folder'}"></i>
+            <span>${escapeHtml(pathItem.name)}</span>
+        `;
+        
+        breadcrumb.appendChild(item);
+    });
+}
+
+function navigateToBreadcrumbItem(index) {
+    const container = document.getElementById('columnNavigation');
+    const allColumns = container.querySelectorAll('.column');
+    for (let i = allColumns.length - 1; i > index; i--) {
+        allColumns[i].remove();
+    }
+    
+    currentPath = currentPath.slice(0, index + 1);
+    columns = columns.slice(0, index + 1);
+    selectedItems = selectedItems.slice(0, index + 1);
+    
+    document.querySelectorAll('.file-item, .folder-item').forEach(el => {
+        el.classList.remove('selected', 'has-next-column');
+    });
+    
+    setTimeout(() => {
+        restoreActivePathVisuals();
+        updateBreadcrumb();
+    }, 10);
+}
+
+function navigateBackOneLevel() {
+    if (currentPath.length > 1) {
+        navigateToBreadcrumbItem(currentPath.length - 2);
+    }
+}
+
+function scrollToActiveColumn() {
+    const container = document.getElementById('columnNavigation');
+    if (container) {
+        setTimeout(() => {
+            container.scrollLeft = container.scrollWidth - container.clientWidth;
+        }, 50);
+    }
+}
+
+// Utility functions
+function getFileExtension(filename) {
+    const ext = filename.split('.').pop();
+    return ext === filename ? '' : ext;
+}
+
+function getRelativePath(fullPath) {
+    if (!folderStructure || !fullPath) return fullPath;
+    
+    const rootPath = currentPath[0]?.path || '';
+    if (fullPath.startsWith(rootPath)) {
+        const relative = fullPath.substring(rootPath.length);
+        return relative.startsWith('/') || relative.startsWith('\\') ? relative.substring(1) : relative;
+    }
+    return fullPath;
 }
 
 function getPrismLanguage(filetype) {
     const langMap = {
         '.py': 'language-python',
+        '.pyw': 'language-python',
         '.js': 'language-javascript',
         '.jsx': 'language-javascript',
         '.ts': 'language-typescript',
@@ -824,314 +1395,34 @@ function getPrismLanguage(filetype) {
         '.ino': 'language-arduino',
         '.sh': 'language-bash',
         '.bash': 'language-bash',
+        '.zsh': 'language-bash',
+        '.fish': 'language-bash',
         '.ps1': 'language-powershell',
         '.bat': 'language-batch',
-        '.cmd': 'language-batch'
+        '.cmd': 'language-batch',
+        '.ini': 'language-ini',
+        '.cfg': 'language-ini',
+        '.conf': 'language-ini',
+        '.toml': 'language-ini',
+        '.dockerfile': 'language-docker',
+        '.makefile': 'language-makefile',
+        '.mk': 'language-makefile',
+        '.r': 'language-r',
+        '.m': 'language-matlab'
     };
     
     return langMap[filetype] || 'language-none';
 }
 
-function getLanguageFromExtension(ext) {
-    const languageMap = {
-        'js': 'javascript',
-        'jsx': 'javascript',
-        'ts': 'typescript',
-        'tsx': 'typescript',
-        'py': 'python',
-        'pyw': 'python',
-        'java': 'java',
-        'c': 'c',
-        'cpp': 'cpp',
-        'cxx': 'cpp',
-        'cc': 'cpp',
-        'h': 'c',
-        'hpp': 'cpp',
-        'cs': 'csharp',
-        'php': 'php',
-        'rb': 'ruby',
-        'go': 'go',
-        'rs': 'rust',
-        'swift': 'swift',
-        'kt': 'kotlin',
-        'scala': 'scala',
-        'sh': 'bash',
-        'bash': 'bash',
-        'zsh': 'bash',
-        'fish': 'bash',
-        'ps1': 'powershell',
-        'bat': 'batch',
-        'cmd': 'batch',
-        'sql': 'sql',
-        'json': 'json',
-        'xml': 'xml',
-        'html': 'html',
-        'htm': 'html',
-        'css': 'css',
-        'scss': 'scss',
-        'sass': 'scss',
-        'less': 'css',
-        'yaml': 'yaml',
-        'yml': 'yaml',
-        'md': 'markdown',
-        'markdown': 'markdown',
-        'ino': 'arduino',
-        'ini': 'ini',
-        'cfg': 'ini',
-        'conf': 'ini',
-        'toml': 'ini',
-        'r': 'r',
-        'm': 'matlab',
-        'dockerfile': 'docker',
-        'makefile': 'makefile',
-        'mk': 'makefile'
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
     };
     
-    return languageMap[ext.toLowerCase()] || null;
-}
-
-function updateBreadcrumb() {
-    const breadcrumb = document.getElementById('breadcrumb');
-    breadcrumb.innerHTML = '';
-    
-    currentPath.forEach((pathItem, index) => {
-        // Add separator
-        if (index > 0) {
-            const separator = document.createElement('span');
-            separator.className = 'breadcrumb-separator';
-            separator.textContent = '/';
-            breadcrumb.appendChild(separator);
-        }
-        
-        // Add breadcrumb item
-        const item = document.createElement('div');
-        item.className = 'breadcrumb-item';
-        
-        if (index < currentPath.length - 1) {
-            item.classList.add('clickable');
-            item.addEventListener('click', () => navigateToBreadcrumbItem(index));
-        }
-        
-        item.innerHTML = `
-            <i class="fas ${index === 0 ? 'fa-home' : (index === currentPath.length - 1 && currentPath[index].name.includes('.') ? 'fa-file' : 'fa-folder')}"></i>
-            <span>${pathItem.name}</span>
-        `;
-        
-        breadcrumb.appendChild(item);
-    });
-}
-
-function navigateToBreadcrumbItem(index) {
-    // Remove columns after the selected level from DOM
-    const container = document.getElementById('columnNavigation');
-    const allColumns = container.querySelectorAll('.column');
-    for (let i = allColumns.length - 1; i > index; i--) {
-        allColumns[i].remove();
-    }
-    
-    // Truncate path and columns to the selected level
-    currentPath = currentPath.slice(0, index + 1);
-    columns = columns.slice(0, index + 1);
-    selectedItems = selectedItems.slice(0, index + 1);
-    
-    // Clear all selections first
-    document.querySelectorAll('.file-item, .folder-item').forEach(el => {
-        el.classList.remove('selected', 'has-next-column');
-    });
-    
-    // Restore visual state for the active path
-    setTimeout(() => {
-        restoreActivePathVisuals();
-        updateBreadcrumb();
-    }, 10);
-}
-
-function getItemIcon(item) {
-    if (item.type === 'folder') {
-        return 'fas fa-folder';
-    }
-    
-    const ext = getFileExtension(item.name).toLowerCase();
-    const iconMap = {
-        'c': 'fab fa-copyright',
-        'cpp': 'fab fa-cuttlefish',
-        'h': 'fas fa-file-code',
-        'py': 'fab fa-python',
-        'js': 'fab fa-js-square',
-        'html': 'fab fa-html5',
-        'css': 'fab fa-css3-alt',
-        'java': 'fab fa-java',
-        'cs': 'fas fa-code',
-        'php': 'fab fa-php',
-        'txt': 'fas fa-file-alt',
-        'md': 'fab fa-markdown',
-        'json': 'fas fa-file-code',
-        'xml': 'fas fa-file-code',
-        'pdf': 'fas fa-file-pdf',
-        'png': 'fas fa-file-image',
-        'jpg': 'fas fa-file-image',
-        'jpeg': 'fas fa-file-image',
-        'gif': 'fas fa-file-image',
-        'svg': 'fas fa-file-image',
-        'zip': 'fas fa-file-archive',
-        'rar': 'fas fa-file-archive',
-        '7z': 'fas fa-file-archive',
-        'cmd': 'fas fa-terminal',
-        'bat': 'fas fa-terminal',
-        'ps1': 'fas fa-terminal',
-        'sh': 'fas fa-terminal'
-    };
-    
-    return iconMap[ext] || 'fas fa-file';
-}
-
-function getFileExtension(filename) {
-    const ext = filename.split('.').pop();
-    return ext === filename ? '' : ext;
-}
-
-function getItemInfo(item) {
-    if (item.type === 'folder') {
-        // Check if we have children data from the backend
-        if (item.children && Array.isArray(item.children)) {
-            const count = item.children.length;
-            return count > 0 ? `${count} item${count !== 1 ? 's' : ''}` : 'Empty folder';
-        }
-        return 'Folder';
-    } else {
-        return formatFileSize(item.size || 0);
-    }
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
-
-function getRelativePath(fullPath) {
-    if (!folderStructure || !fullPath) return fullPath;
-    
-    // Get the root path from the initial structure load
-    const rootPath = currentPath[0]?.path || '';
-    if (fullPath.startsWith(rootPath)) {
-        const relative = fullPath.substring(rootPath.length);
-        return relative.startsWith('/') || relative.startsWith('\\') ? relative.substring(1) : relative;
-    }
-    return fullPath;
-}
-
-function showError(message) {
-    console.error(message);
-    // You could implement a toast notification or modal here
-    alert(message);
-}
-
-// Add keyboard navigation
-document.addEventListener('keydown', (e) => {
-    const modal = document.getElementById('filePreviewModal');
-    
-    if (modal.classList.contains('visible')) {
-        // Modal is open - handle modal-specific shortcuts
-        if (e.key === 'Escape') {
-            e.preventDefault();
-            closeFilePreviewModal();
-        } else if (e.key === 'F11') {
-            e.preventDefault();
-            // Toggle fullscreen mode for modal
-            if (modal.style.padding === '0px') {
-                modal.style.padding = '20px';
-                const content = modal.querySelector('.modal-content');
-                content.style.width = '95vw';
-                content.style.height = '90vh';
-                content.style.borderRadius = '12px';
-            } else {
-                modal.style.padding = '0px';
-                const content = modal.querySelector('.modal-content');
-                content.style.width = '100vw';
-                content.style.height = '100vh';
-                content.style.borderRadius = '0px';
-            }
-        } else if (e.ctrlKey && e.key === '+') {
-            e.preventDefault();
-            // Increase font size
-            const codeElement = modal.querySelector('.file-content-code');
-            if (codeElement) {
-                const currentSize = parseInt(window.getComputedStyle(codeElement).fontSize);
-                codeElement.style.fontSize = (currentSize + 1) + 'px';
-                // Also update line numbers
-                const lineNumbers = modal.querySelector('.line-numbers');
-                if (lineNumbers) {
-                    lineNumbers.style.fontSize = (currentSize + 1) + 'px';
-                }
-            }
-        } else if (e.ctrlKey && e.key === '-') {
-            e.preventDefault();
-            // Decrease font size
-            const codeElement = modal.querySelector('.file-content-code');
-            if (codeElement) {
-                const currentSize = parseInt(window.getComputedStyle(codeElement).fontSize);
-                if (currentSize > 10) {
-                    codeElement.style.fontSize = (currentSize - 1) + 'px';
-                    // Also update line numbers
-                    const lineNumbers = modal.querySelector('.line-numbers');
-                    if (lineNumbers) {
-                        lineNumbers.style.fontSize = (currentSize - 1) + 'px';
-                    }
-                }
-            }
-        } else if (e.ctrlKey && e.key === '0') {
-            e.preventDefault();
-            // Reset font size
-            const codeElement = modal.querySelector('.file-content-code');
-            const lineNumbers = modal.querySelector('.line-numbers');
-            if (codeElement) {
-                codeElement.style.fontSize = '13px';
-            }
-            if (lineNumbers) {
-                lineNumbers.style.fontSize = '13px';
-            }
-        }
-    } else {
-        // Column navigation shortcuts
-        if (e.key === 'ArrowLeft' && e.ctrlKey) {
-            e.preventDefault();
-            navigateBackOneLevel();
-        } else if (e.key === 'ArrowRight' && e.ctrlKey) {
-            e.preventDefault();
-            // Focus on the rightmost column
-            const columns = document.querySelectorAll('.navigation-column');
-            if (columns.length > 0) {
-                const lastColumn = columns[columns.length - 1];
-                const firstItem = lastColumn.querySelector('.column-item');
-                if (firstItem) {
-                    firstItem.focus();
-                }
-            }
-        } else if (e.key === 'Enter' && e.target.classList.contains('column-item')) {
-            e.preventDefault();
-            e.target.click();
-        }
-    }
-});
-
-function navigateBackOneLevel() {
-    if (currentPath.length > 1) {
-        navigateToBreadcrumbItem(currentPath.length - 2);
-    }
-}
-
-// Add smooth scrolling behavior for columns
-function scrollToActiveColumn() {
-    const container = document.getElementById('columnNavigation');
-    const activeColumns = container.querySelectorAll('.navigation-column');
-    
-    if (activeColumns.length > 0) {
-        // Always scroll to show the rightmost column
-        setTimeout(() => {
-            container.scrollLeft = container.scrollWidth - container.clientWidth;
-        }, 50);
-    }
+    return text.toString().replace(/[&<>"']/g, m => map[m]);
 }

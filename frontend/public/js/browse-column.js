@@ -56,25 +56,11 @@ function initializeBrowser() {
 }
 
 function setupEnhancedFeatures() {
-    // Add smooth column scrolling
-    const navigation = document.getElementById('columnNavigation');
-    if (navigation) {
-        navigation.addEventListener('wheel', handleHorizontalScroll);
-    }
-    
     // Add path tracking
     setupPathTracking();
     
     // Add enhanced visual feedback
     setupVisualFeedback();
-}
-
-function handleHorizontalScroll(e) {
-    // Enable horizontal scrolling with mouse wheel
-    if (e.deltaY !== 0) {
-        e.preventDefault();
-        e.currentTarget.scrollLeft += e.deltaY;
-    }
 }
 
 function setupPathTracking() {

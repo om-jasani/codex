@@ -108,65 +108,44 @@ Professional IDE-like interface with advanced features and smart navigation
     box-sizing: border-box;
 }
 
-/* Enhanced Browse Section */
+/* Ensure full viewport usage */
+html, body {
+    width: 100vw;
+    max-width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Enhanced Browse Section - Full viewport utilization */
 .browse-section {
-    padding: var(--spacing-lg);
-    max-width: 100%;
-    margin: 0 auto;
-    width: 100%;
+    padding: 0;
+    max-width: 100vw;
+    margin: 0;
+    width: 100vw;
     height: calc(100vh - 80px); /* Full screen minus header */
     display: flex;
     flex-direction: column;
 }
 
-.browse-title-container {
-    text-align: center;
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-md);
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-}
-
-.browse-title {
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-sm);
-    background: var(--path-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.browse-title i {
-    color: var(--primary-color);
-    text-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
-}
-
-.browse-subtitle {
-    font-size: 1.125rem;
-    color: var(--text-secondary);
-    font-weight: 500;
+/* Ensure full width containers */
+.app-container,
+.main-content {
+    width: 100vw;
+    max-width: 100vw;
     margin: 0;
+    padding: 0;
 }
 
-/* Enhanced Smart Navigation */
+/* Enhanced Smart Navigation - Seamlessly integrated */
 .smart-navigation {
-    background: var(--surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    margin-bottom: var(--spacing-lg);
-    box-shadow: var(--shadow-md);
+    background: var(--column-bg);
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     padding: var(--spacing-md) var(--spacing-lg);
     gap: var(--spacing-lg);
+    flex-shrink: 0;
 }
 
 .nav-controls {
@@ -293,19 +272,15 @@ Professional IDE-like interface with advanced features and smart navigation
     color: var(--primary-color);
 }
 
-/* Enhanced Full-Screen Browse Content */
+/* Enhanced Full-Screen Browse Content - Optimized for maximum space */
 .fullscreen-browse-content {
-    background: var(--surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
     flex: 1;
     min-height: 0;
     overflow: hidden;
     position: relative;
 }
 
-/* Enhanced Column Navigation */
+/* Enhanced Column Navigation - Full integration */
 .column-navigation {
     display: flex;
     height: 100%;
@@ -314,6 +289,7 @@ Professional IDE-like interface with advanced features and smart navigation
     overflow-y: hidden;
     scroll-behavior: smooth;
     position: relative;
+    flex: 1;
 }
 
 .column-navigation::-webkit-scrollbar {
@@ -1723,10 +1699,6 @@ Professional IDE-like interface with advanced features and smart navigation
 
 /* Responsive Design */
 @media (max-width: 1400px) {
-    .browse-section {
-        padding: var(--spacing-md);
-    }
-    
     .column {
         min-width: 280px;
         width: 320px;
@@ -1734,10 +1706,6 @@ Professional IDE-like interface with advanced features and smart navigation
 }
 
 @media (max-width: 1024px) {
-    .browse-title {
-        font-size: 2rem;
-    }
-    
     .column {
         min-width: 260px;
         width: 300px;
@@ -1755,14 +1723,7 @@ Professional IDE-like interface with advanced features and smart navigation
 
 @media (max-width: 768px) {
     .browse-section {
-        padding: var(--spacing-sm);
         height: calc(100vh - 60px);
-    }
-    
-    .browse-title {
-        font-size: 1.75rem;
-        flex-direction: column;
-        gap: var(--spacing-sm);
     }
     
     .smart-navigation {
@@ -1803,14 +1764,6 @@ Professional IDE-like interface with advanced features and smart navigation
 }
 
 @media (max-width: 480px) {
-    .browse-section {
-        padding: var(--spacing-xs);
-    }
-    
-    .browse-title {
-        font-size: 1.5rem;
-    }
-    
     .column {
         min-width: 200px;
         width: 240px;

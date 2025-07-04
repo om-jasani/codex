@@ -903,7 +903,7 @@ function updateModalSidebar(file, fileData) {
                         <button class="control-btn" onclick="decreaseFontSize()" title="Decrease font size">
                             <i class="fas fa-minus"></i>
                         </button>
-                        <span class="font-size-display">${currentFontSize}px</span>
+                        <span class="font-size-display">${currentFontSize}</span>
                         <button class="control-btn" onclick="increaseFontSize()" title="Increase font size">
                             <i class="fas fa-plus"></i>
                         </button>
@@ -1195,7 +1195,7 @@ function updateFontSize() {
     const fontDisplay = document.querySelector('.font-size-display');
     
     if (codeDisplay) codeDisplay.style.fontSize = currentFontSize + 'px';
-    if (fontDisplay) fontDisplay.textContent = currentFontSize + 'px';
+    if (fontDisplay) fontDisplay.textContent = currentFontSize;
 }
 
 // Search functionality

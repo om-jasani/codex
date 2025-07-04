@@ -1,30 +1,49 @@
 /* 
 DC Codex - Enhanced Browse Repository Styles
-Professional IDE-like interface with advanced features
+Professional IDE-like interface with advanced features and smart navigation
 */
 
 :root {
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
+    --primary-light: #3b82f6;
     --secondary-color: #64748b;
     --background: #f8fafc;
     --surface: #ffffff;
+    --surface-elevated: #f1f5f9;
     --text-primary: #1e293b;
     --text-secondary: #64748b;
+    --text-muted: #94a3b8;
     --border-color: #e2e8f0;
+    --border-light: #f1f5f9;
     --success-color: #10b981;
     --error-color: #ef4444;
     --warning-color: #f59e0b;
-    --code-background: #f8fafc;
-    --hover-bg: #f1f5f9;
-    --active-folder-bg: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    --active-folder-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    --arrow-color: #f59e0b;
-    --border-radius: 0.5rem;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --info-color: #0ea5e9;
+    
+    /* Enhanced path colors - NO MORE CHEAP ORANGE! */
+    --path-active: #1e40af;
+    --path-active-bg: #eff6ff;
+    --path-border: #3b82f6;
+    --path-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    
+    /* Professional column colors */
+    --column-bg: #ffffff;
+    --column-border: #e2e8f0;
+    --column-header-bg: #f8fafc;
+    --column-hover: #f1f5f9;
+    --column-active: #eff6ff;
+    --column-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    
+    /* Enhanced item colors */
+    --item-hover: #f8fafc;
+    --item-selected: #dbeafe;
+    --item-in-path: #eff6ff;
+    --item-in-path-border: #3b82f6;
+    --item-active-folder: #1e40af;
+    --item-active-folder-light: #3b82f6;
+    --item-file-selected: #dcfce7;
+    --item-file-active: #16a34a;
     
     /* Code editor colors */
     --editor-bg: #ffffff;
@@ -33,17 +52,48 @@ Professional IDE-like interface with advanced features
     --editor-selection: rgba(59, 130, 246, 0.2);
     --editor-search-highlight: #fef3c7;
     --editor-search-current: #fcd34d;
+    
+    /* Spacing and sizing */
+    --border-radius: 0.5rem;
+    --border-radius-sm: 0.375rem;
+    --border-radius-lg: 0.75rem;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease-in-out;
+    --transition-normal: 0.25s ease-in-out;
+    --transition-slow: 0.35s ease-in-out;
 }
 
 /* Dark theme variables */
 [data-theme="dark"] {
     --background: #0f172a;
     --surface: #1e293b;
+    --surface-elevated: #334155;
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
+    --text-muted: #64748b;
     --border-color: #334155;
-    --hover-bg: #334155;
-    --code-background: #1e293b;
+    --border-light: #475569;
+    --column-bg: #1e293b;
+    --column-header-bg: #334155;
+    --column-hover: #334155;
+    --column-active: #1e3a8a;
+    --item-hover: #334155;
+    --item-selected: #1e3a8a;
+    --item-in-path: #1e3a8a;
+    --path-active-bg: #1e3a8a;
+    --path-border: #3b82f6;
     
     /* Dark editor colors */
     --editor-bg: #1e293b;
@@ -58,134 +108,260 @@ Professional IDE-like interface with advanced features
     box-sizing: border-box;
 }
 
-/* Browse Section Styles */
+/* Enhanced Browse Section */
 .browse-section {
-    padding: 2rem;
-    max-width: 1400px;
+    padding: var(--spacing-lg);
+    max-width: 100%;
     margin: 0 auto;
     width: 100%;
+    height: calc(100vh - 80px); /* Full screen minus header */
+    display: flex;
+    flex-direction: column;
 }
 
 .browse-title-container {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
 }
 
 .browse-title {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     font-weight: 700;
     color: var(--text-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    background: var(--path-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .browse-title i {
     color: var(--primary-color);
+    text-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
 }
 
 .browse-subtitle {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
     color: var(--text-secondary);
-    font-weight: 400;
+    font-weight: 500;
+    margin: 0;
 }
 
-/* Enhanced Breadcrumb Styles */
-.breadcrumb-container {
+/* Enhanced Smart Navigation */
+.smart-navigation {
     background: var(--surface);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--shadow-sm);
-}
-
-.breadcrumb {
+    margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    padding: var(--spacing-md) var(--spacing-lg);
+    gap: var(--spacing-lg);
+}
+
+.nav-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.nav-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--surface);
+    color: var(--text-secondary);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+}
+
+.nav-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.smart-breadcrumb-container {
+    flex: 1;
+    min-width: 0;
+}
+
+.smart-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    overflow-x: auto;
+    padding: var(--spacing-xs) 0;
+}
+
+.smart-breadcrumb::-webkit-scrollbar {
+    height: 4px;
+}
+
+.smart-breadcrumb::-webkit-scrollbar-track {
+    background: var(--surface-elevated);
+}
+
+.smart-breadcrumb::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 2px;
 }
 
 .breadcrumb-item {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
     color: var(--text-secondary);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
-    transition: all 0.2s ease;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid transparent;
+    transition: all var(--transition-normal);
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    position: relative;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .breadcrumb-item:hover {
-    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-    color: var(--text-primary);
-    border: 1px solid #cbd5e1;
+    background: var(--path-active-bg);
+    color: var(--path-active);
+    border-color: var(--path-border);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .breadcrumb-item.active {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+    background: var(--path-gradient);
     color: white;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-    border: 1px solid var(--primary-color);
+    border-color: var(--primary-color);
 }
 
 .breadcrumb-item i {
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    transition: transform var(--transition-fast);
 }
 
-.breadcrumb-item + .breadcrumb-item:before {
-    content: '/';
+.breadcrumb-item:hover i {
+    transform: scale(1.1);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: '›';
+    color: var(--text-muted);
+    margin: 0 var(--spacing-xs);
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+.path-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
     color: var(--text-secondary);
-    margin: 0 0.5rem;
-    font-size: 1.1rem;
-    font-weight: 300;
+    background: var(--surface-elevated);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-light);
 }
 
-/* Browse Content Area */
-.browse-content {
+.path-info i {
+    color: var(--primary-color);
+}
+
+/* Enhanced Full-Screen Browse Content */
+.fullscreen-browse-content {
     background: var(--surface);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow-md);
-    height: 70vh;
-    max-height: 800px;
-    min-height: 500px;
+    box-shadow: var(--shadow-lg);
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
+    position: relative;
 }
 
-/* Column Navigation */
+/* Enhanced Column Navigation */
 .column-navigation {
     display: flex;
     height: 100%;
-    background: var(--surface);
+    background: var(--column-bg);
     overflow-x: auto;
     overflow-y: hidden;
     scroll-behavior: smooth;
+    position: relative;
+}
+
+.column-navigation::-webkit-scrollbar {
+    height: 8px;
+}
+
+.column-navigation::-webkit-scrollbar-track {
+    background: var(--surface-elevated);
+}
+
+.column-navigation::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.column-navigation::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 .column {
-    flex: 1;
-    border-right: 1px solid var(--border-color);
+    flex: 0 0 auto;
+    border-right: 1px solid var(--column-border);
     display: flex;
     flex-direction: column;
-    min-width: 280px;
+    min-width: 320px;
     max-width: 400px;
-    animation: slideInFromRight 0.3s ease-out;
+    width: 350px;
+    background: var(--column-bg);
+    transition: all var(--transition-normal);
+    position: relative;
+}
+
+.column:hover {
+    box-shadow: inset 0 0 0 1px var(--primary-light);
+}
+
+.column:last-child {
+    border-right: none;
+}
+
+.column-slide-in {
+    animation: slideInFromRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideInFromRight {
     from {
         opacity: 0;
-        transform: translateX(20px);
+        transform: translateX(30px);
     }
     to {
         opacity: 1;
@@ -193,89 +369,119 @@ Professional IDE-like interface with advanced features
     }
 }
 
-.column:last-child {
-    border-right: none;
-}
-
+/* Enhanced Column Header */
 .column-header {
-    background: var(--background);
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--column-header-bg) 0%, var(--surface-elevated) 100%);
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--column-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .column-title-section {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
     font-weight: 600;
     color: var(--text-primary);
+    font-size: 1.125rem;
 }
 
 .column-title-section i {
     color: var(--primary-color);
+    font-size: 1.25rem;
+}
+
+.column-title {
+    font-size: 1rem;
+    font-weight: 600;
 }
 
 .item-count {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    background: var(--hover-bg);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--surface);
     padding: 0.25rem 0.5rem;
     border-radius: 1rem;
+    border: 1px solid var(--border-light);
+    font-weight: 500;
+    min-width: 40px;
+    text-align: center;
 }
 
+/* Enhanced Column Content */
 .column-content {
     flex: 1;
     overflow-y: auto;
-    max-height: calc(100% - 60px);
+    padding: var(--spacing-sm);
+    background: var(--column-bg);
 }
 
 .column-content::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 .column-content::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: transparent;
 }
 
 .column-content::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
+    background: var(--border-color);
+    border-radius: 3px;
 }
 
 .column-content::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--text-secondary);
 }
 
 /* Enhanced Item Styling */
 .file-item, .folder-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+    transition: all var(--transition-normal);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-xs);
     position: relative;
-    border-radius: 6px;
-    margin: 2px 4px;
-    border-left: 3px solid transparent;
+    background: var(--surface);
+    border: 1px solid transparent;
 }
 
 .file-item:hover, .folder-item:hover {
-    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    transform: translateX(3px);
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
-    border-left: 3px solid #cbd5e1;
+    background: var(--item-hover);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: var(--border-color);
+}
+
+/* Professional Path Visualization - NO CHEAP ORANGE BORDERS! */
+.folder-item.in-path {
+    background: var(--item-in-path);
+    border-left: 3px solid var(--item-in-path-border);
+    font-weight: 600;
+    transform: translateX(2px);
+}
+
+.folder-item.in-path .item-name {
+    color: var(--path-active);
+}
+
+.folder-item.in-path .folder-icon {
+    color: var(--path-active) !important;
 }
 
 /* Enhanced Item Structure */
 .item-main {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--spacing-md);
     flex: 1;
     min-width: 0;
 }
@@ -288,109 +494,128 @@ Professional IDE-like interface with advanced features
 .item-name {
     font-weight: 500;
     font-size: 0.9rem;
-    letter-spacing: 0.01em;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 2px;
+    transition: color var(--transition-fast);
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
-    display: block;
+    white-space: nowrap;
 }
 
 .item-meta {
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 400;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+    line-height: 1.3;
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-top: 2px;
+    white-space: nowrap;
 }
 
 .file-extension {
     font-size: 0.7rem;
-    color: var(--text-secondary);
-    background: var(--hover-bg);
+    color: var(--text-muted);
+    background: var(--surface-elevated);
     padding: 0.2rem 0.4rem;
     border-radius: 0.25rem;
     font-weight: 600;
     text-transform: uppercase;
     margin-left: auto;
+    border: 1px solid var(--border-light);
 }
 
 .item-arrow {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    opacity: 0.6;
-    transition: all 0.2s ease;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: all var(--transition-fast);
+    margin-left: auto;
+}
+
+.folder-item:hover .item-arrow {
+    color: var(--primary-color);
+    transform: translateX(2px);
 }
 
 /* Enhanced Selection States */
 .file-item.selected {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%) !important;
     color: white !important;
     box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4) !important;
-    transform: translateX(4px) !important;
-    border-left: 3px solid #34d399 !important;
-    font-weight: 600 !important;
+    transform: translateX(6px) !important;
+    border-color: var(--success-color) !important;
 }
 
 .folder-item.selected {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background: var(--path-gradient) !important;
     color: white !important;
     box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4) !important;
-    transform: translateX(4px) !important;
-    border-left: 3px solid #60a5fa !important;
-    font-weight: 600 !important;
+    transform: translateX(6px) !important;
+    border-color: var(--item-active-folder) !important;
 }
 
+/* Smart Active Path Visualization */
 .folder-item.selected.has-next-column {
-    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+    background: var(--path-gradient) !important;
     color: white !important;
     box-shadow: 0 6px 24px rgba(30, 64, 175, 0.6), 
-                0 0 0 2px #fbbf24 !important;
-    border-left: 4px solid #fbbf24 !important;
+                0 0 0 2px var(--primary-color) !important;
+    border: 2px solid var(--primary-color) !important;
+    transform: translateX(8px) !important;
     position: relative;
-    transform: translateX(6px) !important;
-    font-weight: 700 !important;
-    animation: active-folder-glow 3s ease-in-out infinite;
-    border: 2px solid #fbbf24;
+    z-index: 5;
+    animation: smartPathGlow 3s ease-in-out infinite;
 }
 
-@keyframes active-folder-glow {
+@keyframes smartPathGlow {
     0%, 100% { 
         box-shadow: 0 6px 24px rgba(30, 64, 175, 0.6), 
-                    0 0 0 2px #fbbf24;
+                    0 0 0 2px var(--primary-color);
     }
     50% { 
         box-shadow: 0 8px 32px rgba(30, 64, 175, 0.8), 
-                    0 0 0 3px #f59e0b,
-                    0 0 20px rgba(251, 191, 36, 0.4);
+                    0 0 0 3px var(--primary-light),
+                    0 0 20px rgba(59, 130, 246, 0.4);
     }
+}
+
+.folder-item.selected.has-next-column::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 100%;
+    background: var(--path-gradient);
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
 }
 
 .folder-item.selected.has-next-column::after {
-    content: "▶" !important;
+    content: "▶";
     position: absolute;
-    right: 1rem;
-    font-size: 1.2rem !important;
-    color: #fbbf24 !important;
+    right: var(--spacing-md);
+    font-size: 1.2rem;
+    color: var(--surface);
     font-weight: bold;
-    animation: pulse-arrow 2s ease-in-out infinite;
-    text-shadow: 0 0 12px rgba(251, 191, 36, 1), 
-                 0 2px 4px rgba(0, 0, 0, 0.5) !important;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+    animation: smartArrowPulse 2s ease-in-out infinite;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 
+                 0 1px 2px rgba(0, 0, 0, 0.3);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     z-index: 10;
 }
 
-@keyframes pulse-arrow {
+@keyframes smartArrowPulse {
     0%, 100% { 
         opacity: 0.9; 
-        transform: translateX(0) scale(1); 
+        transform: scale(1) translateX(0); 
     }
     50% { 
         opacity: 1; 
-        transform: translateX(4px) scale(1.15); 
+        transform: scale(1.1) translateX(2px); 
     }
 }
 
@@ -399,85 +624,131 @@ Professional IDE-like interface with advanced features
 .folder-item.selected .item-name,
 .folder-item.selected .item-meta {
     color: white !important;
+    font-weight: 600;
 }
 
 .file-item.selected .file-extension {
     background: rgba(255, 255, 255, 0.2);
     color: white;
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Icon Styling */
+/* Enhanced Icon Styling */
 .file-icon, .folder-icon {
-    font-size: 1.2rem;
-    width: 1.2rem;
+    font-size: 1.3rem;
+    width: 1.3rem;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
 }
 
 .folder-icon {
-    color: #3b82f6;
+    color: var(--primary-color);
 }
 
 .file-icon {
-    color: #64748b;
+    color: var(--text-secondary);
 }
 
 .file-item.selected .file-icon,
 .folder-item.selected .folder-icon {
     color: white !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transform: scale(1.1);
 }
 
 .file-item:hover .file-icon,
 .folder-item:hover .folder-icon {
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
-/* Loading and Empty States */
+/* Enhanced Loading State */
 .loading-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--text-secondary);
-    gap: 1rem;
+    padding: var(--spacing-xl);
+    text-align: center;
 }
 
 .loading-spinner {
-    font-size: 2rem;
-    color: var(--primary-color);
+    margin-bottom: var(--spacing-lg);
 }
 
-.loading-spinner i {
-    animation: spin 1s linear infinite;
+.spinner-ring {
+    display: inline-block;
+    position: relative;
+    width: 64px;
+    height: 64px;
 }
 
+.spinner-ring div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 51px;
+    height: 51px;
+    margin: 6px;
+    border: 6px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spinnerRing 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: var(--primary-color) transparent transparent transparent;
+}
+
+.spinner-ring div:nth-child(1) { animation-delay: -0.45s; }
+.spinner-ring div:nth-child(2) { animation-delay: -0.3s; }
+.spinner-ring div:nth-child(3) { animation-delay: -0.15s; }
+
+@keyframes spinnerRing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-state h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.loading-state p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Enhanced Empty State */
 .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--text-secondary);
-    gap: 1rem;
-    padding: 2rem;
+    padding: var(--spacing-xl);
     text-align: center;
 }
 
 .empty-state i {
-    font-size: 3rem;
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-lg);
     opacity: 0.5;
 }
 
 .empty-state h3 {
-    color: var(--text-primary);
+    font-size: 1.5rem;
     font-weight: 600;
-    margin: 0;
+    color: var(--text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
 }
 
 .empty-state p {
+    font-size: 1rem;
+    color: var(--text-secondary);
     margin: 0;
+    line-height: 1.5;
 }
 
 .error-state i {
@@ -485,23 +756,25 @@ Professional IDE-like interface with advanced features
 }
 
 .btn-retry {
-    padding: 0.75rem 1.5rem;
+    padding: var(--spacing-md) var(--spacing-lg);
     background: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius);
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition-normal);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+    font-size: 0.875rem;
 }
 
 .btn-retry:hover {
     background: var(--primary-hover);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 /* Enhanced File Preview Modal */
@@ -511,7 +784,7 @@ Professional IDE-like interface with advanced features
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.9);
     display: none;
     align-items: center;
     justify-content: center;
@@ -520,8 +793,7 @@ Professional IDE-like interface with advanced features
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 20px;
-    box-sizing: border-box;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(12px);
 }
 
 #filePreviewModal.visible {
@@ -536,7 +808,7 @@ Professional IDE-like interface with advanced features
 
 .modal-content {
     background: var(--surface);
-    border-radius: 16px;
+    border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-xl);
     width: 95vw;
     height: 90vh;
@@ -546,7 +818,7 @@ Professional IDE-like interface with advanced features
     flex-direction: column;
     overflow: hidden;
     position: relative;
-    transform: scale(0.95) translateY(20px);
+    transform: scale(0.9) translateY(40px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -560,14 +832,13 @@ Professional IDE-like interface with advanced features
     border-radius: 0;
 }
 
-/* Modal Header */
 .modal-header {
-    padding: 1.5rem 2rem;
+    padding: var(--spacing-lg) var(--spacing-xl);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--background);
+    background: var(--surface-elevated);
     flex-shrink: 0;
     min-height: 80px;
 }
@@ -575,7 +846,7 @@ Professional IDE-like interface with advanced features
 .modal-title {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--spacing-md);
     flex: 1;
     min-width: 0;
 }
@@ -590,34 +861,69 @@ Professional IDE-like interface with advanced features
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-primary);
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-badges {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-left: var(--spacing-md);
+}
+
+.badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: var(--primary-color);
+    color: white;
+}
+
+.ext-badge {
+    background: var(--info-color);
+}
+
+.size-badge {
+    background: var(--success-color);
+}
+
+.modal-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.keyboard-shortcuts {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: none;
 }
 
 .modal-close {
-    background: var(--hover-bg);
+    background: var(--surface);
     border: 1px solid var(--border-color);
-    font-size: 1.2rem;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 0.75rem;
-    border-radius: 8px;
-    transition: all 0.2s ease;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-normal);
     display: flex;
     align-items: center;
     justify-content: center;
     width: 44px;
     height: 44px;
-    flex-shrink: 0;
+    font-size: 1.1rem;
 }
 
 .modal-close:hover {
-    background: #fee2e2;
-    color: #dc2626;
-    border-color: #fecaca;
+    background: var(--error-color);
+    color: white;
+    border-color: var(--error-color);
     transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
 /* Modal Body */
@@ -631,9 +937,9 @@ Professional IDE-like interface with advanced features
 /* Modal Sidebar */
 .modal-sidebar {
     width: 320px;
-    background: var(--background);
+    background: var(--surface-elevated);
     border-right: 1px solid var(--border-color);
-    padding: 1.5rem;
+    padding: var(--spacing-lg);
     overflow-y: auto;
     flex-shrink: 0;
 }
@@ -643,7 +949,7 @@ Professional IDE-like interface with advanced features
 }
 
 .modal-sidebar::-webkit-scrollbar-track {
-    background: var(--background);
+    background: var(--surface-elevated);
 }
 
 .modal-sidebar::-webkit-scrollbar-thumb {
@@ -655,14 +961,14 @@ Professional IDE-like interface with advanced features
 .file-actions-section,
 .file-controls-section,
 .keyboard-shortcuts-section {
-    margin-bottom: 2rem;
+    margin-bottom: var(--spacing-xl);
 }
 
 .file-info-section h3,
 .file-actions-section h3,
 .file-controls-section h3,
 .keyboard-shortcuts-section h3 {
-    margin: 0 0 1rem 0;
+    margin: 0 0 var(--spacing-md) 0;
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -673,18 +979,18 @@ Professional IDE-like interface with advanced features
 .file-meta-grid {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--spacing-md);
 }
 
 .file-meta-item {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--spacing-xs);
 }
 
 .file-meta-label {
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     text-transform: uppercase;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -696,9 +1002,9 @@ Professional IDE-like interface with advanced features
     font-weight: 500;
     word-break: break-all;
     line-height: 1.4;
-    padding: 0.5rem;
+    padding: var(--spacing-sm);
     background: var(--surface);
-    border-radius: 0.375rem;
+    border-radius: var(--border-radius-sm);
     border: 1px solid var(--border-color);
 }
 
@@ -706,22 +1012,22 @@ Professional IDE-like interface with advanced features
 .action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
 }
 
 .action-btn {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
     background: var(--surface);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius-sm);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     text-decoration: none;
 }
 
@@ -741,18 +1047,18 @@ Professional IDE-like interface with advanced features
 .control-groups {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--spacing-lg);
 }
 
 .control-group {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--spacing-md);
 }
 
 .control-group label {
     font-size: 0.75rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     text-transform: uppercase;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -760,20 +1066,20 @@ Professional IDE-like interface with advanced features
 
 .theme-buttons {
     display: flex;
-    gap: 0.25rem;
+    gap: var(--spacing-xs);
     border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius-sm);
     overflow: hidden;
 }
 
 .control-btn {
     flex: 1;
-    padding: 0.5rem;
+    padding: var(--spacing-sm);
     background: var(--surface);
     color: var(--text-secondary);
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
@@ -781,7 +1087,7 @@ Professional IDE-like interface with advanced features
 }
 
 .control-btn:hover {
-    background: var(--hover-bg);
+    background: var(--surface-elevated);
     color: var(--text-primary);
 }
 
@@ -793,25 +1099,25 @@ Professional IDE-like interface with advanced features
 .font-controls {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
     border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius-sm);
     overflow: hidden;
 }
 
 .font-controls .control-btn {
     flex: 0 0 auto;
-    padding: 0.5rem 0.75rem;
+    padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .font-size-display {
     flex: 1;
     text-align: center;
-    padding: 0.5rem;
+    padding: var(--spacing-sm);
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-primary);
-    background: var(--hover-bg);
+    background: var(--surface-elevated);
 }
 
 .search-controls .control-btn {
@@ -823,16 +1129,16 @@ Professional IDE-like interface with advanced features
 .shortcuts-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
 }
 
 .shortcut-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem;
+    padding: var(--spacing-sm);
     background: var(--surface);
-    border-radius: 0.375rem;
+    border-radius: var(--border-radius-sm);
     border: 1px solid var(--border-color);
 }
 
@@ -841,7 +1147,7 @@ Professional IDE-like interface with advanced features
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-primary);
-    background: var(--hover-bg);
+    background: var(--surface-elevated);
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
 }
@@ -886,9 +1192,9 @@ Professional IDE-like interface with advanced features
 
 /* Code Header */
 .code-header {
-    background: var(--background);
+    background: var(--surface-elevated);
     border-bottom: 1px solid var(--border-color);
-    padding: 1rem 1.5rem;
+    padding: var(--spacing-md) var(--spacing-lg);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -898,7 +1204,7 @@ Professional IDE-like interface with advanced features
 .code-title {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--spacing-md);
     font-weight: 500;
     color: var(--text-primary);
 }
@@ -909,26 +1215,26 @@ Professional IDE-like interface with advanced features
 
 .line-count {
     font-size: 0.75rem;
-    color: var(--text-secondary);
-    background: var(--hover-bg);
+    color: var(--text-muted);
+    background: var(--surface);
     padding: 0.25rem 0.5rem;
     border-radius: 1rem;
-    margin-left: 0.5rem;
+    margin-left: var(--spacing-sm);
 }
 
 .code-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
 }
 
 .code-action-btn {
-    padding: 0.5rem;
+    padding: var(--spacing-sm);
     background: var(--surface);
     color: var(--text-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 0.375rem;
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -944,20 +1250,20 @@ Professional IDE-like interface with advanced features
 
 /* Search Bar */
 .search-bar {
-    background: var(--background);
+    background: var(--surface-elevated);
     border-bottom: 1px solid var(--border-color);
-    padding: 0.75rem 1.5rem;
+    padding: var(--spacing-md) var(--spacing-lg);
     flex-shrink: 0;
 }
 
 .search-input-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
     background: var(--surface);
     border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    padding: var(--spacing-sm);
 }
 
 .search-input-group input {
@@ -977,7 +1283,7 @@ Professional IDE-like interface with advanced features
     cursor: pointer;
     padding: 0.25rem;
     border-radius: 0.25rem;
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -986,7 +1292,7 @@ Professional IDE-like interface with advanced features
 }
 
 .search-input-group button:hover {
-    background: var(--hover-bg);
+    background: var(--surface-elevated);
     color: var(--text-primary);
 }
 
@@ -1007,13 +1313,13 @@ Professional IDE-like interface with advanced features
 }
 
 .line-numbers {
-    background: var(--background);
+    background: var(--surface-elevated);
     border-right: 1px solid var(--border-color);
     color: var(--editor-line-numbers);
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
     font-size: 14px;
     line-height: 1.5;
-    padding: 1rem 0.75rem;
+    padding: var(--spacing-md) var(--spacing-md);
     margin: 0;
     user-select: none;
     text-align: right;
@@ -1038,13 +1344,13 @@ Professional IDE-like interface with advanced features
 }
 
 .code-scroll-container::-webkit-scrollbar-track {
-    background: var(--background);
+    background: var(--surface-elevated);
 }
 
 .code-scroll-container::-webkit-scrollbar-thumb {
     background: var(--border-color);
     border-radius: 6px;
-    border: 2px solid var(--background);
+    border: 2px solid var(--surface-elevated);
 }
 
 .code-scroll-container::-webkit-scrollbar-thumb:hover {
@@ -1052,12 +1358,12 @@ Professional IDE-like interface with advanced features
 }
 
 .code-scroll-container::-webkit-scrollbar-corner {
-    background: var(--background);
+    background: var(--surface-elevated);
 }
 
 .code-display {
     margin: 0;
-    padding: 1rem;
+    padding: var(--spacing-md);
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Courier New', monospace;
     font-size: 14px;
     line-height: 1.5;
@@ -1223,7 +1529,7 @@ Professional IDE-like interface with advanced features
 /* Image and PDF Wrappers */
 .image-wrapper,
 .pdf-wrapper {
-    padding: 1rem;
+    padding: var(--spacing-md);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1241,7 +1547,7 @@ Professional IDE-like interface with advanced features
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: var(--border-radius-sm);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -1255,8 +1561,35 @@ Professional IDE-like interface with advanced features
     width: 100%;
     height: 100%;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--border-radius-sm);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-preview-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-secondary);
+    gap: var(--spacing-md);
+}
+
+.pdf-preview-info i {
+    font-size: 3rem;
+    color: var(--error-color);
+}
+
+.pdf-preview-info h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+
+.pdf-preview-info p {
+    margin: 0;
+    color: var(--text-secondary);
 }
 
 /* Loading and Error States */
@@ -1266,23 +1599,14 @@ Professional IDE-like interface with advanced features
     align-items: center;
     justify-content: center;
     height: 100%;
-    gap: 1.5rem;
+    gap: var(--spacing-lg);
     color: var(--text-secondary);
     text-align: center;
-    padding: 2rem;
+    padding: var(--spacing-xl);
 }
 
 .file-preview-loading .loading-spinner {
     position: relative;
-}
-
-.file-preview-loading .spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid var(--border-color);
-    border-top-color: var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
 }
 
 .file-preview-loading h3 {
@@ -1304,8 +1628,8 @@ Professional IDE-like interface with advanced features
     height: 100%;
     text-align: center;
     color: var(--text-secondary);
-    padding: 2rem;
-    gap: 1.5rem;
+    padding: var(--spacing-xl);
+    gap: var(--spacing-lg);
 }
 
 .file-preview-error i {
@@ -1327,17 +1651,17 @@ Professional IDE-like interface with advanced features
 }
 
 .retry-btn {
-    padding: 0.75rem 1.5rem;
+    padding: var(--spacing-md) var(--spacing-lg);
     background: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--border-radius-sm);
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition-normal);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
 }
 
 .retry-btn:hover {
@@ -1353,16 +1677,17 @@ Professional IDE-like interface with advanced features
     background: var(--surface);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md) var(--spacing-lg);
     box-shadow: var(--shadow-lg);
     z-index: 9999;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--spacing-md);
     transform: translateX(100%);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     max-width: 400px;
+    min-width: 300px;
 }
 
 .toast.show {
@@ -1388,22 +1713,39 @@ Professional IDE-like interface with advanced features
 }
 
 .toast.toast-info {
-    border-color: var(--primary-color);
-    background: #eff6ff;
+    border-color: var(--info-color);
+    background: #f0f9ff;
 }
 
 .toast.toast-info i {
-    color: var(--primary-color);
+    color: var(--info-color);
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .browse-section {
-        padding: 1rem;
+        padding: var(--spacing-md);
     }
     
     .column {
-        min-width: 220px;
+        min-width: 280px;
+        width: 320px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .browse-title {
+        font-size: 2rem;
+    }
+    
+    .column {
+        min-width: 260px;
+        width: 300px;
+    }
+    
+    .smart-navigation {
+        flex-direction: column;
+        gap: var(--spacing-md);
     }
     
     .modal-sidebar {
@@ -1412,16 +1754,26 @@ Professional IDE-like interface with advanced features
 }
 
 @media (max-width: 768px) {
-    .browse-title {
-        font-size: 2rem;
+    .browse-section {
+        padding: var(--spacing-sm);
+        height: calc(100vh - 60px);
     }
     
-    .column-navigation {
-        height: 500px;
+    .browse-title {
+        font-size: 1.75rem;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .smart-navigation {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-md);
     }
     
     .column {
-        min-width: 180px;
+        min-width: 240px;
+        width: 280px;
     }
     
     .modal-content {
@@ -1441,45 +1793,27 @@ Professional IDE-like interface with advanced features
         max-height: 200px;
     }
     
-    .code-content {
-        flex-direction: column;
-    }
-    
-    .line-numbers {
-        display: none;
-    }
-    
-    .code-display {
-        padding: 0.75rem;
-        font-size: 12px;
-    }
-    
     .modal-header {
-        padding: 1rem;
+        padding: var(--spacing-md);
     }
     
     .modal-title h2 {
-        font-size: 1rem;
+        font-size: 1.125rem;
     }
 }
 
 @media (max-width: 480px) {
     .browse-section {
-        padding: 0.5rem;
+        padding: var(--spacing-xs);
     }
     
     .browse-title {
         font-size: 1.5rem;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .column-navigation {
-        height: 400px;
     }
     
     .column {
-        min-width: 150px;
+        min-width: 200px;
+        width: 240px;
     }
     
     .toast {
@@ -1490,23 +1824,20 @@ Professional IDE-like interface with advanced features
     }
 }
 
-/* Animations */
-@keyframes spin {
+/* Enhanced Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
     to {
-        transform: rotate(360deg);
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-.column-slide-in {
-    animation: slideInFromRight 0.3s ease-out;
-}
-
 .file-item, .folder-item {
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.file-item:hover, .folder-item:hover {
-    transform: translateX(2px);
+    animation: fadeInUp 0.3s ease-out;
 }
 
 /* High contrast mode support */
@@ -1533,8 +1864,31 @@ Professional IDE-like interface with advanced features
     }
 }
 
+/* Focus states for accessibility */
+.file-item:focus,
+.folder-item:focus,
+.breadcrumb-item:focus,
+.nav-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
 /* Print styles */
 @media print {
+    .browse-section {
+        padding: 0;
+    }
+    
+    .fullscreen-browse-content {
+        height: auto;
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .column {
+        break-inside: avoid;
+    }
+    
     #filePreviewModal {
         position: static;
         background: white;

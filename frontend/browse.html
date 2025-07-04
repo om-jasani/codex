@@ -57,28 +57,53 @@
                         <i class="fas fa-folder-tree"></i>
                         Code Repository Browser
                     </h1>
-                    <p class="browse-subtitle">Navigate through your code repositories</p>
+                    <p class="browse-subtitle">Navigate through your code repositories with ease</p>
                 </div>
 
-                <!-- Breadcrumb Navigation -->
-                <div class="breadcrumb-container">
-                    <nav class="breadcrumb" id="breadcrumb" aria-label="breadcrumb">
-                        <div class="breadcrumb-item active">
-                            <i class="fas fa-home"></i>
-                            <span>Root</span>
-                        </div>
-                    </nav>
+                <!-- Enhanced Smart Navigation -->
+                <div class="smart-navigation">
+                    <div class="nav-controls">
+                        <button class="nav-btn" onclick="navigateBackOneLevel()" title="Go back one level" id="backBtn">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button class="nav-btn" onclick="navigateForward()" title="Go forward" id="forwardBtn">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="nav-btn" onclick="loadInitialStructure()" title="Refresh repository">
+                            <i class="fas fa-refresh"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="smart-breadcrumb-container">
+                        <nav class="smart-breadcrumb" id="breadcrumb" aria-label="breadcrumb">
+                            <div class="breadcrumb-item active">
+                                <i class="fas fa-home"></i>
+                                <span>Root</span>
+                            </div>
+                        </nav>
+                    </div>
+                    
+                    <div class="path-info">
+                        <i class="fas fa-route"></i>
+                        <span id="pathIndicator">Root Directory</span>
+                    </div>
                 </div>
 
-                <!-- Column Navigation -->
-                <div class="browse-content">
+                <!-- Enhanced Full-Screen Column Navigation -->
+                <div class="fullscreen-browse-content">
                     <div class="column-navigation" id="columnNavigation">
                         <!-- Columns will be dynamically populated -->
                         <div class="loading-state" id="loadingState">
                             <div class="loading-spinner">
-                                <i class="fas fa-spinner fa-spin"></i>
+                                <div class="spinner-ring">
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                </div>
                             </div>
-                            <p>Loading repository structure...</p>
+                            <h3>Loading Repository</h3>
+                            <p>Please wait while we load your repository structure...</p>
                         </div>
                     </div>
                 </div>
@@ -86,13 +111,14 @@
         </main>
     </div>
 
-    <!-- File Preview Modal -->
+    <!-- Enhanced File Preview Modal -->
     <div id="filePreviewModal" style="display: none;" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">
                     <i id="modalFileIcon" class="file-icon fas fa-file"></i>
                     <h2 id="modalFileName">File Preview</h2>
+                    <div class="file-badges" id="fileBadges"></div>
                 </div>
                 <div class="modal-controls">
                     <div class="keyboard-shortcuts" title="Keyboard Shortcuts">
@@ -220,6 +246,14 @@
             } catch (error) {
                 console.error('Logout error:', error);
                 window.location.href = '/';
+            }
+        }
+
+        // Navigate forward function
+        function navigateForward() {
+            // This will be implemented by the main JS file
+            if (window.navigateForwardInHistory) {
+                window.navigateForwardInHistory();
             }
         }
 

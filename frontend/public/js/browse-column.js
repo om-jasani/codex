@@ -1,6 +1,6 @@
 /**
  * DC Codex - Enhanced Column Navigation Browser JavaScript
- * Professional IDE-like interface with advanced features
+ * Professional IDE-like interface with smart navigation and comprehensive features
  */
 
 // Global state
@@ -15,6 +15,10 @@ let currentFontSize = 14;
 let searchTerm = '';
 let searchResults = [];
 let currentSearchIndex = 0;
+let pathHistory = [];
+let historyIndex = -1;
+let navigationAnimation = null;
+let isNavigating = false;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadInitialStructure();
     setupModalHandlers();
     setupKeyboardShortcuts();
+    setupEnhancedFeatures();
 });
 
 function initializeBrowser() {
@@ -38,15 +43,73 @@ function initializeBrowser() {
     // Initialize theme from localStorage
     currentTheme = localStorage.getItem('codexTheme') || 'light';
     currentFontSize = parseInt(localStorage.getItem('codexFontSize')) || 14;
+    
+    // Apply theme
+    applyTheme();
+    
+    // Initialize path history
+    pathHistory = [];
+    historyIndex = -1;
+    
+    // Add smooth scrolling behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+}
+
+function setupEnhancedFeatures() {
+    // Add smooth column scrolling
+    const navigation = document.getElementById('columnNavigation');
+    if (navigation) {
+        navigation.addEventListener('wheel', handleHorizontalScroll);
+    }
+    
+    // Add path tracking
+    setupPathTracking();
+    
+    // Add enhanced visual feedback
+    setupVisualFeedback();
+}
+
+function handleHorizontalScroll(e) {
+    // Enable horizontal scrolling with mouse wheel
+    if (e.deltaY !== 0) {
+        e.preventDefault();
+        e.currentTarget.scrollLeft += e.deltaY;
+    }
+}
+
+function setupPathTracking() {
+    // Initialize path indicator
+    updatePathIndicator();
+    updateNavigationButtons();
+}
+
+function setupVisualFeedback() {
+    // Add hover effects and animations
+    document.addEventListener('mouseover', handleItemHover);
+    document.addEventListener('mouseout', handleItemUnhover);
+}
+
+function handleItemHover(e) {
+    const item = e.target.closest('.file-item, .folder-item');
+    if (item && !item.classList.contains('selected')) {
+        item.style.transform = 'translateX(4px)';
+    }
+}
+
+function handleItemUnhover(e) {
+    const item = e.target.closest('.file-item, .folder-item');
+    if (item && !item.classList.contains('selected')) {
+        item.style.transform = '';
+    }
 }
 
 function updateMaxVisibleColumns() {
     const screenWidth = window.innerWidth;
     if (screenWidth < 768) {
         maxVisibleColumns = 2;
-    } else if (screenWidth < 1200) {
+    } else if (screenWidth < 1024) {
         maxVisibleColumns = 3;
-    } else if (screenWidth < 1600) {
+    } else if (screenWidth < 1400) {
         maxVisibleColumns = 4;
     } else {
         maxVisibleColumns = 5;
@@ -83,8 +146,6 @@ function setupKeyboardShortcuts() {
 }
 
 function handleModalKeyboard(e) {
-    const modal = document.getElementById('filePreviewModal');
-    
     switch(e.key) {
         case 'Escape':
             e.preventDefault();
@@ -124,8 +185,6 @@ function handleModalKeyboard(e) {
             }
             break;
             
-
-            
         case 'c':
             if (e.ctrlKey || e.metaKey && e.shiftKey) {
                 e.preventDefault();
@@ -136,19 +195,15 @@ function handleModalKeyboard(e) {
 }
 
 function handleBrowserKeyboard(e) {
-    if (e.key === 'ArrowLeft' && e.ctrlKey) {
+    if (e.key === 'ArrowLeft' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         navigateBackOneLevel();
-    } else if (e.key === 'ArrowRight' && e.ctrlKey) {
+    } else if (e.key === 'ArrowRight' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        const columns = document.querySelectorAll('.column');
-        if (columns.length > 0) {
-            const lastColumn = columns[columns.length - 1];
-            const firstItem = lastColumn.querySelector('.folder-item, .file-item');
-            if (firstItem) {
-                firstItem.focus();
-            }
-        }
+        navigateForwardInHistory();
+    } else if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        loadInitialStructure();
     }
 }
 
@@ -175,9 +230,13 @@ async function loadInitialStructure() {
                 items: rootItems
             }];
             
+            // Add to history
+            addToHistory();
+            
             hideLoadingState();
             renderColumns();
             updateBreadcrumb();
+            updatePathIndicator();
         } else {
             hideLoadingState();
             showError('Failed to load directory structure: ' + (data.error || 'Unknown error'));
@@ -195,9 +254,15 @@ function showLoadingState() {
         container.innerHTML = `
             <div class="loading-state">
                 <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i>
+                    <div class="spinner-ring">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
                 </div>
-                <p>Loading repository structure...</p>
+                <h3>Loading Repository</h3>
+                <p>Please wait while we load your repository structure...</p>
             </div>
         `;
     }
@@ -257,9 +322,14 @@ function renderColumns() {
         selectedItems.push(null);
     });
     
-    setTimeout(() => {
+    // Optimize display for too many columns
+    optimizeColumnDisplay();
+    
+    // Add enhanced animations
+    requestAnimationFrame(() => {
         restoreActivePathVisuals();
-    }, 10);
+        updatePathIndicator();
+    });
     
     setTimeout(() => {
         scrollToActiveColumn();
@@ -268,9 +338,35 @@ function renderColumns() {
         if (newColumn) {
             setTimeout(() => {
                 newColumn.classList.remove('column-slide-in');
-            }, 300);
+            }, 400);
         }
     }, 50);
+}
+
+function optimizeColumnDisplay() {
+    const container = document.getElementById('columnNavigation');
+    if (!container) return;
+    
+    const columns = container.querySelectorAll('.column');
+    
+    // If we have more columns than can fit, intelligently manage visibility
+    if (columns.length > maxVisibleColumns) {
+        // Keep the last maxVisibleColumns visible
+        const startIndex = Math.max(0, columns.length - maxVisibleColumns);
+        
+        columns.forEach((column, index) => {
+            if (index < startIndex) {
+                // Fade out old columns
+                column.style.opacity = '0.3';
+                column.style.transform = 'translateX(-20px)';
+                column.style.pointerEvents = 'none';
+            } else {
+                column.style.opacity = '1';
+                column.style.transform = 'translateX(0)';
+                column.style.pointerEvents = 'auto';
+            }
+        });
+    }
 }
 
 function restoreActivePathVisuals() {
@@ -289,6 +385,9 @@ function restoreActivePathVisuals() {
             
             if (itemName === pathItem.name || itemPath === pathItem.path) {
                 itemElement.classList.add('selected');
+                
+                // Add path indicator
+                itemElement.classList.add('in-path');
                 
                 if (pathIndex < currentPath.length - 1) {
                     itemElement.classList.add('has-next-column');
@@ -314,7 +413,7 @@ function createColumn(columnData, columnIndex) {
     header.innerHTML = `
         <div class="column-title-section">
             <i class="fas fa-folder"></i>
-            <span class="column-title">${columnData.title}</span>
+            <span class="column-title">${escapeHtml(columnData.title)}</span>
         </div>
         <span class="item-count">${columnData.items.length} items</span>
     `;
@@ -327,7 +426,7 @@ function createColumn(columnData, columnIndex) {
             <div class="empty-state">
                 <i class="fas fa-folder-open"></i>
                 <h3>Empty Directory</h3>
-                <p>This folder is empty</p>
+                <p>This folder contains no items</p>
             </div>
         `;
     } else {
@@ -372,7 +471,7 @@ function createColumnItem(item, columnIndex) {
     
     itemElement.innerHTML = `
         <div class="item-main">
-            <i class="${icon.class} ${item.type === 'folder' ? 'folder-icon' : 'file-icon'}"></i>
+            <i class="${icon.class} ${item.type === 'folder' ? 'folder-icon' : 'file-icon'}" ${icon.color ? `style="color: ${icon.color}"` : ''}></i>
             <div class="item-details">
                 <span class="item-name">${escapeHtml(item.name)}</span>
                 <span class="item-meta">${itemMeta}</span>
@@ -387,12 +486,25 @@ function createColumnItem(item, columnIndex) {
         handleItemClick(item, columnIndex, itemElement);
     });
     
+    // Add hover effects
+    itemElement.addEventListener('mouseenter', () => {
+        if (!itemElement.classList.contains('selected')) {
+            itemElement.style.transform = 'translateX(4px)';
+        }
+    });
+    
+    itemElement.addEventListener('mouseleave', () => {
+        if (!itemElement.classList.contains('selected')) {
+            itemElement.style.transform = '';
+        }
+    });
+    
     return itemElement;
 }
 
 function getFileIcon(item) {
     if (item.type === 'folder') {
-        return { class: 'fas fa-folder' };
+        return { class: 'fas fa-folder', color: '#3b82f6' };
     }
     
     const extension = item.name.split('.').pop().toLowerCase();
@@ -457,14 +569,14 @@ function getFileIcon(item) {
 function formatItemMeta(item) {
     if (item.type === 'folder') {
         const childCount = item.children ? item.children.length : (item.item_count || 0);
-        return childCount > 0 ? `${childCount} items` : 'Empty';
+        return childCount > 0 ? `${childCount} items` : 'Empty folder';
     }
     
     if (item.size) {
         return formatFileSize(item.size);
     }
     
-    return '';
+    return 'Unknown size';
 }
 
 function formatFileSize(bytes) {
@@ -476,17 +588,34 @@ function formatFileSize(bytes) {
 }
 
 async function handleItemClick(item, columnIndex, itemElement) {
+    if (isNavigating) return;
+    
+    // Clear previous selections
     document.querySelectorAll('.file-item, .folder-item').forEach(el => {
-        el.classList.remove('selected', 'has-next-column');
+        el.classList.remove('selected', 'has-next-column', 'in-path');
+        el.style.transform = '';
     });
     
+    // Add selection animation
     itemElement.classList.add('selected');
     selectedItems[columnIndex] = item;
     
+    // Remove columns to the right with animation
     const container = document.getElementById('columnNavigation');
     const allColumns = container.querySelectorAll('.column');
+    
+    // Smart column removal
     for (let i = allColumns.length - 1; i > columnIndex; i--) {
-        allColumns[i].remove();
+        const column = allColumns[i];
+        column.style.animation = 'slideOutToRight 0.3s ease-in-out';
+        column.style.transform = 'translateX(100px)';
+        column.style.opacity = '0';
+        
+        setTimeout(() => {
+            if (column.parentNode) {
+                column.remove();
+            }
+        }, 300);
     }
     
     columns = columns.slice(0, columnIndex + 1);
@@ -494,6 +623,10 @@ async function handleItemClick(item, columnIndex, itemElement) {
     
     if (item.type === 'folder') {
         itemElement.classList.add('has-next-column');
+        itemElement.classList.add('in-path');
+        
+        // Add folder opening animation
+        showFolderLoadingAnimation(itemElement);
         
         const shouldLoadFresh = columnIndex > 2 || !item.children || item.children.length === 0;
         
@@ -536,22 +669,119 @@ async function handleItemClick(item, columnIndex, itemElement) {
         columns.push(newColumnData);
         currentPath.push({ name: item.name, path: item.path });
         
+        // Add to history
+        addToHistory();
+        
+        // Remove loading animation
+        removeFolderLoadingAnimation(itemElement);
+        
         const newColumnElement = createColumn(newColumnData, columnIndex + 1);
         newColumnElement.classList.add('column-slide-in');
         container.appendChild(newColumnElement);
         
         updateBreadcrumb();
+        updatePathIndicator();
+        updateNavigationButtons();
+        
+        // Optimize column display
+        optimizeColumnDisplay();
         
         setTimeout(() => {
             scrollToActiveColumn();
             
             setTimeout(() => {
                 newColumnElement.classList.remove('column-slide-in');
-            }, 300);
+            }, 400);
         }, 100);
         
     } else {
         await showFilePreview(item);
+    }
+}
+
+function showFolderLoadingAnimation(itemElement) {
+    const arrow = itemElement.querySelector('.item-arrow');
+    if (arrow) {
+        arrow.classList.add('fa-spin');
+    }
+}
+
+function removeFolderLoadingAnimation(itemElement) {
+    const arrow = itemElement.querySelector('.item-arrow');
+    if (arrow) {
+        arrow.classList.remove('fa-spin');
+    }
+}
+
+function addToHistory() {
+    const state = {
+        path: [...currentPath],
+        columns: [...columns],
+        selectedItems: [...selectedItems]
+    };
+    
+    // Remove forward history if we're not at the end
+    if (historyIndex < pathHistory.length - 1) {
+        pathHistory = pathHistory.slice(0, historyIndex + 1);
+    }
+    
+    pathHistory.push(state);
+    historyIndex = pathHistory.length - 1;
+    
+    // Keep only last 50 states
+    if (pathHistory.length > 50) {
+        pathHistory = pathHistory.slice(-50);
+        historyIndex = pathHistory.length - 1;
+    }
+    
+    updateNavigationButtons();
+}
+
+function updateNavigationButtons() {
+    const backBtn = document.getElementById('backBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
+    
+    if (backBtn) {
+        backBtn.disabled = historyIndex <= 0;
+    }
+    
+    if (forwardBtn) {
+        forwardBtn.disabled = historyIndex >= pathHistory.length - 1;
+    }
+}
+
+function navigateForwardInHistory() {
+    if (historyIndex < pathHistory.length - 1) {
+        historyIndex++;
+        restoreHistoryState();
+    }
+}
+
+function restoreHistoryState() {
+    if (historyIndex < 0 || historyIndex >= pathHistory.length) return;
+    
+    const state = pathHistory[historyIndex];
+    isNavigating = true;
+    
+    currentPath = [...state.path];
+    columns = [...state.columns];
+    selectedItems = [...state.selectedItems];
+    
+    renderColumns();
+    updateBreadcrumb();
+    updatePathIndicator();
+    updateNavigationButtons();
+    
+    setTimeout(() => {
+        isNavigating = false;
+    }, 500);
+}
+
+function updatePathIndicator() {
+    const pathIndicator = document.getElementById('pathIndicator');
+    if (pathIndicator) {
+        const pathString = currentPath.map(p => p.name).join(' → ');
+        pathIndicator.textContent = pathString;
     }
 }
 
@@ -596,7 +826,7 @@ function showFilePreviewModal(file, fileData, isLoading = false) {
 
 function updateModalContent(file, fileData, isLoading) {
     // Update header
-    updateModalHeader(file);
+    updateModalHeader(file, fileData);
     
     // Update sidebar
     updateModalSidebar(file, fileData);
@@ -605,9 +835,10 @@ function updateModalContent(file, fileData, isLoading) {
     updateModalMainContent(file, fileData, isLoading);
 }
 
-function updateModalHeader(file) {
+function updateModalHeader(file, fileData) {
     const fileName = document.getElementById('modalFileName');
     const fileIcon = document.querySelector('#filePreviewModal .modal-title .file-icon');
+    const fileBadges = document.getElementById('fileBadges');
     
     if (fileName) fileName.textContent = file.name;
     
@@ -615,6 +846,27 @@ function updateModalHeader(file) {
         const icon = getFileIcon(file);
         fileIcon.className = `file-icon ${icon.class}`;
         fileIcon.style.color = icon.color || '#3b82f6';
+    }
+    
+    if (fileBadges && fileData && !fileData.error) {
+        const extension = getFileExtension(file.name);
+        const size = fileData.size ? formatFileSize(fileData.size) : null;
+        
+        fileBadges.innerHTML = '';
+        
+        if (extension) {
+            const extBadge = document.createElement('span');
+            extBadge.className = 'badge ext-badge';
+            extBadge.textContent = extension.toUpperCase();
+            fileBadges.appendChild(extBadge);
+        }
+        
+        if (size) {
+            const sizeBadge = document.createElement('span');
+            sizeBadge.className = 'badge size-badge';
+            sizeBadge.textContent = size;
+            fileBadges.appendChild(sizeBadge);
+        }
     }
 }
 
@@ -723,7 +975,6 @@ function updateModalSidebar(file, fileData) {
                     <span class="shortcut-key">Ctrl+F</span>
                     <span class="shortcut-desc">Search</span>
                 </div>
-
                 <div class="shortcut-item">
                     <span class="shortcut-key">F11</span>
                     <span class="shortcut-desc">Fullscreen</span>
@@ -745,7 +996,12 @@ function updateModalMainContent(file, fileData, isLoading) {
         mainContent.innerHTML = `
             <div class="file-preview-loading">
                 <div class="loading-spinner">
-                    <div class="spinner"></div>
+                    <div class="spinner-ring">
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                        <div></div>
+                    </div>
                 </div>
                 <h3>Loading file content...</h3>
                 <p>Please wait while we fetch the file content.</p>
@@ -962,7 +1218,20 @@ function setTheme(theme) {
     });
     document.querySelector(`.theme-buttons .control-btn[onclick="setTheme('${theme}')"]`).classList.add('active');
     
+    applyTheme();
     applyCodeTheme();
+}
+
+function applyTheme() {
+    if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else if (currentTheme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+        // Auto theme
+        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    }
 }
 
 function applyCodeTheme() {
@@ -1189,7 +1458,9 @@ function showToast(message, type = 'info') {
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => {
-            document.body.removeChild(toast);
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
         }, 300);
     }, 3000);
 }
@@ -1214,13 +1485,6 @@ function updateBreadcrumb() {
     breadcrumb.innerHTML = '';
     
     currentPath.forEach((pathItem, index) => {
-        if (index > 0) {
-            const separator = document.createElement('span');
-            separator.className = 'breadcrumb-separator';
-            separator.textContent = '/';
-            breadcrumb.appendChild(separator);
-        }
-        
         const item = document.createElement('div');
         item.className = 'breadcrumb-item';
         
@@ -1245,8 +1509,15 @@ function updateBreadcrumb() {
 function navigateToBreadcrumbItem(index) {
     const container = document.getElementById('columnNavigation');
     const allColumns = container.querySelectorAll('.column');
+    
+    // Add slide-out animation to removed columns
     for (let i = allColumns.length - 1; i > index; i--) {
-        allColumns[i].remove();
+        allColumns[i].style.animation = 'slideOutToRight 0.3s ease-in-out';
+        setTimeout(() => {
+            if (allColumns[i].parentNode) {
+                allColumns[i].remove();
+            }
+        }, 300);
     }
     
     currentPath = currentPath.slice(0, index + 1);
@@ -1254,17 +1525,24 @@ function navigateToBreadcrumbItem(index) {
     selectedItems = selectedItems.slice(0, index + 1);
     
     document.querySelectorAll('.file-item, .folder-item').forEach(el => {
-        el.classList.remove('selected', 'has-next-column');
+        el.classList.remove('selected', 'has-next-column', 'in-path');
     });
+    
+    // Add to history
+    addToHistory();
     
     setTimeout(() => {
         restoreActivePathVisuals();
         updateBreadcrumb();
+        updatePathIndicator();
     }, 10);
 }
 
 function navigateBackOneLevel() {
-    if (currentPath.length > 1) {
+    if (historyIndex > 0) {
+        historyIndex--;
+        restoreHistoryState();
+    } else if (currentPath.length > 1) {
         navigateToBreadcrumbItem(currentPath.length - 2);
     }
 }
@@ -1276,6 +1554,28 @@ function scrollToActiveColumn() {
             container.scrollLeft = container.scrollWidth - container.clientWidth;
         }, 50);
     }
+}
+
+// Add CSS keyframes for slide-out animation
+const slideOutKeyframes = `
+    @keyframes slideOutToRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(50px);
+        }
+    }
+`;
+
+// Inject keyframes into the document
+if (!document.getElementById('slideOutKeyframes')) {
+    const style = document.createElement('style');
+    style.id = 'slideOutKeyframes';
+    style.textContent = slideOutKeyframes;
+    document.head.appendChild(style);
 }
 
 // Utility functions
@@ -1365,3 +1665,9 @@ function escapeHtml(text) {
     
     return text.toString().replace(/[&<>"']/g, m => map[m]);
 }
+
+// Global function for forward navigation
+window.navigateForwardInHistory = navigateForwardInHistory;
+
+// Apply initial theme
+applyTheme();

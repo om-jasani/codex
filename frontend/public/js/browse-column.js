@@ -10,7 +10,6 @@ let columns = [];
 let selectedItems = [];
 let maxVisibleColumns = 5;
 let currentModalFile = null;
-let currentTheme = 'light';
 let currentFontSize = 14;
 let searchTerm = '';
 let searchResults = [];
@@ -40,12 +39,7 @@ function initializeBrowser() {
     updateMaxVisibleColumns();
     window.addEventListener('resize', updateMaxVisibleColumns);
     
-    // Initialize theme from localStorage
-    currentTheme = localStorage.getItem('codexTheme') || 'light';
     currentFontSize = parseInt(localStorage.getItem('codexFontSize')) || 14;
-    
-    // Apply theme
-    applyTheme();
     
     // Initialize path history
     pathHistory = [];
@@ -168,13 +162,6 @@ function handleModalKeyboard(e) {
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
                 openSearch();
-            }
-            break;
-            
-        case 'c':
-            if (e.ctrlKey || e.metaKey && e.shiftKey) {
-                e.preventDefault();
-                copyAllContent();
             }
             break;
     }
@@ -911,21 +898,6 @@ function updateModalSidebar(file, fileData) {
             <h3>View Controls</h3>
             <div class="control-groups">
                 <div class="control-group">
-                    <label>Theme</label>
-                    <div class="theme-buttons">
-                        <button class="control-btn ${currentTheme === 'light' ? 'active' : ''}" onclick="setTheme('light')">
-                            <i class="fas fa-sun"></i>
-                        </button>
-                        <button class="control-btn ${currentTheme === 'dark' ? 'active' : ''}" onclick="setTheme('dark')">
-                            <i class="fas fa-moon"></i>
-                        </button>
-                        <button class="control-btn ${currentTheme === 'auto' ? 'active' : ''}" onclick="setTheme('auto')">
-                            <i class="fas fa-adjust"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="control-group">
                     <label>Font Size</label>
                     <div class="font-controls">
                         <button class="control-btn" onclick="decreaseFontSize()" title="Decrease font size">
@@ -953,10 +925,6 @@ function updateModalSidebar(file, fileData) {
         <div class="keyboard-shortcuts-section">
             <h3>Shortcuts</h3>
             <div class="shortcuts-list">
-                <div class="shortcut-item">
-                    <span class="shortcut-key">Ctrl+C</span>
-                    <span class="shortcut-desc">Copy content</span>
-                </div>
                 <div class="shortcut-item">
                     <span class="shortcut-key">Ctrl+F</span>
                     <span class="shortcut-desc">Search</span>
@@ -1073,6 +1041,9 @@ function renderCodeContent(file, fileData, container) {
         return;
     }
     
+    // Store original content for copying
+    const originalContent = content;
+    
     // Format JSON and XML for better readability
     const ext = getFileExtension(file.name);
     if (ext === 'json') {
@@ -1091,10 +1062,17 @@ function renderCodeContent(file, fileData, container) {
     }
     
     const lines = content.split('\n');
-    const lineNumbers = lines.map((_, i) => (i + 1).toString()).join('\n');
+    
+    // Create HTML with line numbers as spans for precise control
+    const codeWithLineNumbers = lines.map((line, index) => {
+        const lineNum = index + 1;
+        return `<div class="code-line-wrapper"><span class="line-number-span" data-line="${lineNum}">${lineNum}</span><span class="code-content-span">${escapeHtml(line)}</span></div>`;
+    }).join('');
     
     container.innerHTML = `
-        <div class="file-content-wrapper code-wrapper" data-theme="${currentTheme}">
+        <div class="file-content-wrapper code-wrapper">
+            <!-- Hidden element to store original content for copying -->
+            <div id="originalContent" style="display: none;" data-original-content="${escapeHtml(originalContent)}"></div>
             <div class="code-header">
                 <div class="code-title">
                     <i class="${getFileIcon(file).class}"></i>
@@ -1102,7 +1080,7 @@ function renderCodeContent(file, fileData, container) {
                     <span class="line-count">${lines.length} lines</span>
                 </div>
                 <div class="code-actions">
-                    <button class="code-action-btn" onclick="copyAllContent()" title="Copy all content">
+                    <button class="code-action-btn" onclick="copyAllContent()" title="Copy file content">
                         <i class="fas fa-copy"></i>
                     </button>
                     <button class="code-action-btn" onclick="openSearch()" title="Search in file">
@@ -1127,33 +1105,30 @@ function renderCodeContent(file, fileData, container) {
                 </div>
             </div>
             
-            <div class="code-content" id="codeContent">
-                <div class="line-numbers" id="lineNumbers">${lineNumbers}</div>
-                <div class="code-scroll-container">
-                    <pre class="code-display" id="codeDisplay"><code id="codeText" class="${getPrismLanguage(`.${ext}`)}" style="font-size: ${currentFontSize}px;">${escapeHtml(content)}</code></pre>
-                </div>
+            <div class="code-display-container">
+                <pre class="code-display-robust" id="codeDisplay" style="font-size: ${currentFontSize}px;"><code id="codeText" class="${getPrismLanguage(`.${ext}`)}" data-formatted-content="${escapeHtml(content)}">${codeWithLineNumbers}</code></pre>
             </div>
         </div>
     `;
     
-    // Apply syntax highlighting
+    // Apply syntax highlighting to code content only
     setTimeout(() => {
         if (window.Prism) {
-            const codeElement = container.querySelector('#codeText');
-            if (codeElement) {
+            const codeSpans = container.querySelectorAll('.code-content-span');
+            codeSpans.forEach(span => {
+                // Apply highlighting to individual code spans
+                const tempCode = document.createElement('code');
+                tempCode.className = getPrismLanguage(`.${ext}`);
+                tempCode.textContent = span.textContent;
+                
                 try {
-                    Prism.highlightElement(codeElement);
+                    Prism.highlightElement(tempCode);
+                    span.innerHTML = tempCode.innerHTML;
                 } catch (e) {
-                    console.warn('Syntax highlighting failed:', e);
+                    // Keep original if highlighting fails
                 }
-            }
+            });
         }
-        
-        // Sync scroll between line numbers and code
-        setupScrollSync();
-        
-        // Apply theme
-        applyCodeTheme();
         
     }, 100);
 }
@@ -1193,40 +1168,6 @@ function formatXml(xml) {
     }).join('\n');
 }
 
-// Theme management
-function setTheme(theme) {
-    currentTheme = theme;
-    localStorage.setItem('codexTheme', theme);
-    
-    // Update UI
-    document.querySelectorAll('.theme-buttons .control-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`.theme-buttons .control-btn[onclick="setTheme('${theme}')"]`).classList.add('active');
-    
-    applyTheme();
-    applyCodeTheme();
-}
-
-function applyTheme() {
-    if (currentTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    } else if (currentTheme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-    } else {
-        // Auto theme
-        const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    }
-}
-
-function applyCodeTheme() {
-    const wrapper = document.querySelector('.code-wrapper');
-    if (wrapper) {
-        wrapper.setAttribute('data-theme', currentTheme);
-    }
-}
-
 // Font size management
 function increaseFontSize() {
     if (currentFontSize < 24) {
@@ -1250,12 +1191,10 @@ function resetFontSize() {
 function updateFontSize() {
     localStorage.setItem('codexFontSize', currentFontSize.toString());
     
-    const codeText = document.getElementById('codeText');
-    const lineNumbers = document.getElementById('lineNumbers');
+    const codeDisplay = document.getElementById('codeDisplay');
     const fontDisplay = document.querySelector('.font-size-display');
     
-    if (codeText) codeText.style.fontSize = currentFontSize + 'px';
-    if (lineNumbers) lineNumbers.style.fontSize = currentFontSize + 'px';
+    if (codeDisplay) codeDisplay.style.fontSize = currentFontSize + 'px';
     if (fontDisplay) fontDisplay.textContent = currentFontSize + 'px';
 }
 
@@ -1371,9 +1310,94 @@ function scrollToSearchResult(index) {
 
 // File actions
 function copyAllContent() {
+    // Try to get the original content from the hidden element (for exact file copy)
+    const originalContentElement = document.getElementById('originalContent');
+    if (originalContentElement) {
+        const originalContent = originalContentElement.dataset.originalContent;
+        if (originalContent) {
+            // Decode HTML entities
+            const decodedContent = decodeHtmlEntities(originalContent);
+            copyToClipboard(decodedContent, 'Original file content copied to clipboard');
+            return;
+        }
+    }
+
+    // Try to get the formatted content from the code element (for pretty-printed copy)
     const codeText = document.getElementById('codeText');
     if (codeText) {
-        copyToClipboard(codeText.textContent, 'File content copied to clipboard');
+        const formattedContent = codeText.dataset.formattedContent;
+        if (formattedContent) {
+            // Decode HTML entities
+            const decodedContent = decodeHtmlEntities(formattedContent);
+            copyToClipboard(decodedContent, 'Formatted file content copied to clipboard');
+            return;
+        }
+    }
+
+    // Try to extract content from code-content-span elements (robust: preserves line breaks)
+    if (codeText) {
+        const codeLines = codeText.querySelectorAll('.code-content-span');
+        if (codeLines.length > 0) {
+            // Get text content from each line and join with newlines
+            const content = Array.from(codeLines).map(line => line.textContent || '').join('\n');
+            copyToClipboard(content, 'File content copied to clipboard');
+            return;
+        }
+    }
+
+    // Fallback: use API call if we have the current modal file
+    if (currentModalFile) {
+        copyOriginalFileContent();
+        return;
+    }
+
+    // Last resort: use textContent but warn about potential formatting issues
+    if (codeText) {
+        // Try to split by line wrappers if possible
+        let fallbackContent = codeText.textContent;
+        // If there are code-line-wrapper divs, join their textContent with newlines
+        const codeLineWrappers = codeText.querySelectorAll('.code-line-wrapper');
+        if (codeLineWrappers.length > 0) {
+            fallbackContent = Array.from(codeLineWrappers).map(div => {
+                const codeSpan = div.querySelector('.code-content-span');
+                return codeSpan ? codeSpan.textContent : '';
+            }).join('\n');
+        }
+        copyToClipboard(fallbackContent, 'File content copied to clipboard (formatting may be affected)');
+    } else {
+        showToast('No content available to copy', 'error');
+    }
+}
+
+// Helper function to decode HTML entities
+function decodeHtmlEntities(text) {
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
+// Helper function to copy original file content
+async function copyOriginalFileContent() {
+    if (!currentModalFile) {
+        showToast('No file selected', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/files/content?path=${encodeURIComponent(currentModalFile.path)}`);
+        if (response.ok) {
+            const fileData = await response.json();
+            if (fileData.content) {
+                copyToClipboard(fileData.content, 'Original file content copied to clipboard');
+            } else {
+                showToast('File content is empty', 'error');
+            }
+        } else {
+            showToast('Failed to fetch original file content', 'error');
+        }
+    } catch (error) {
+        console.error('Error fetching original file content:', error);
+        showToast('Error fetching file content', 'error');
     }
 }
 
@@ -1413,14 +1437,27 @@ function fallbackCopyToClipboard(text, successMessage) {
     textArea.value = text;
     textArea.style.position = 'fixed';
     textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+    
+    // Preserve line breaks and whitespace
+    textArea.style.whiteSpace = 'pre-wrap';
+    textArea.style.wordWrap = 'break-word';
+    
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
     
     try {
-        document.execCommand('copy');
-        showToast(successMessage, 'success');
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showToast(successMessage, 'success');
+        } else {
+            showToast('Failed to copy to clipboard', 'error');
+        }
     } catch (err) {
+        console.error('Copy failed:', err);
         showToast('Failed to copy to clipboard', 'error');
     }
     
@@ -1654,6 +1691,3 @@ function escapeHtml(text) {
 
 // Global function for forward navigation
 window.navigateForwardInHistory = navigateForwardInHistory;
-
-// Apply initial theme
-applyTheme();

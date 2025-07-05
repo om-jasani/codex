@@ -1,6 +1,6 @@
 /* 
 DC Codex - Enhanced Browse Repository Styles
-Professional IDE-like interface with advanced features and smart navigation
+Professional IDE-like interface with sophisticated path visualization
 */
 
 :root {
@@ -21,11 +21,22 @@ Professional IDE-like interface with advanced features and smart navigation
     --warning-color: #f59e0b;
     --info-color: #0ea5e9;
     
-    /* Enhanced path colors - NO MORE CHEAP ORANGE! */
-    --path-active: #1e40af;
-    --path-active-bg: #eff6ff;
-    --path-border: #3b82f6;
-    --path-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    /* Professional path visualization colors */
+    --path-subtle-bg: #f0f6ff;
+    --path-subtle-border: #bfdbfe;
+    --path-subtle-text: #1e40af;
+    --path-active-bg: #dbeafe;
+    --path-active-border: #3b82f6;
+    --path-active-text: #1d4ed8;
+    --path-current-bg: #2563eb;
+    --path-current-text: #ffffff;
+    --path-arrow-color: #6b7280;
+    --path-arrow-active: #3b82f6;
+    
+    /* Enhanced file selection colors */
+    --file-selected-bg: #d1fae5;
+    --file-selected-border: #34d399;
+    --file-selected-text: #047857;
     
     /* Professional column colors */
     --column-bg: #ffffff;
@@ -37,13 +48,7 @@ Professional IDE-like interface with advanced features and smart navigation
     
     /* Enhanced item colors */
     --item-hover: #f8fafc;
-    --item-selected: #dbeafe;
-    --item-in-path: #eff6ff;
-    --item-in-path-border: #3b82f6;
-    --item-active-folder: #1e40af;
-    --item-active-folder-light: #3b82f6;
-    --item-file-selected: #dcfce7;
-    --item-file-active: #16a34a;
+    --item-border-radius: 8px;
     
     /* Code editor colors */
     --editor-bg: #ffffff;
@@ -195,15 +200,15 @@ html, body {
 }
 
 .breadcrumb-item:hover {
-    background: var(--path-active-bg);
-    color: var(--path-active);
-    border-color: var(--path-border);
+    background: var(--path-subtle-bg);
+    color: var(--path-subtle-text);
+    border-color: var(--path-subtle-border);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .breadcrumb-item.active {
-    background: var(--path-gradient);
+    background: linear-gradient(135deg, var(--path-current-bg) 0%, var(--primary-hover) 100%);
     color: white;
     font-weight: 600;
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
@@ -394,7 +399,7 @@ html, body {
     padding: var(--spacing-md);
     cursor: pointer;
     transition: all var(--transition-normal);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--item-border-radius);
     margin-bottom: var(--spacing-xs);
     position: relative;
     background: var(--surface);
@@ -408,20 +413,138 @@ html, body {
     border-color: var(--border-color);
 }
 
-/* Professional Path Visualization - NO CHEAP ORANGE BORDERS! */
+/* ===== PROFESSIONAL PATH VISUALIZATION SYSTEM ===== */
+
+/* Step 1: Subtle highlighting for all folders in the navigation path */
 .folder-item.in-path {
-    background: var(--item-in-path);
-    border-left: 3px solid var(--item-in-path-border);
-    font-weight: 600;
+    background: var(--path-subtle-bg);
+    border: 1px solid var(--path-subtle-border);
+    position: relative;
     transform: translateX(2px);
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
 }
 
 .folder-item.in-path .item-name {
-    color: var(--path-active);
+    color: var(--path-subtle-text);
+    font-weight: 600;
 }
 
 .folder-item.in-path .folder-icon {
-    color: var(--path-active) !important;
+    color: var(--path-subtle-text);
+}
+
+/* Step 2: Add subtle directional arrows for all path folders */
+.folder-item.in-path::after {
+    content: "→";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--path-arrow-color);
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.7;
+    transition: all var(--transition-normal);
+}
+
+/* Step 3: Enhanced styling for folders that have next columns (intermediate path folders) */
+.folder-item.in-path.has-next-column {
+    background: var(--path-active-bg);
+    border-color: var(--path-active-border);
+    transform: translateX(4px);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
+}
+
+.folder-item.in-path.has-next-column .item-name {
+    color: var(--path-active-text);
+}
+
+.folder-item.in-path.has-next-column .folder-icon {
+    color: var(--path-active-text);
+}
+
+.folder-item.in-path.has-next-column::after {
+    color: var(--path-arrow-active);
+    opacity: 1;
+    font-size: 16px;
+    animation: subtleArrowPulse 2s ease-in-out infinite;
+}
+
+/* Step 4: Special styling for the currently selected/active folder */
+.folder-item.selected {
+    background: var(--path-current-bg) !important;
+    color: var(--path-current-text) !important;
+    border-color: var(--primary-color) !important;
+    transform: translateX(6px) !important;
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+.folder-item.selected .item-name,
+.folder-item.selected .item-meta {
+    color: var(--path-current-text) !important;
+    font-weight: 600;
+}
+
+.folder-item.selected .folder-icon {
+    color: var(--path-current-text) !important;
+}
+
+/* Step 5: Enhanced arrow for currently selected folder */
+.folder-item.selected::after {
+    content: "▶" !important;
+    color: var(--path-current-text) !important;
+    opacity: 1 !important;
+    font-size: 14px !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    animation: currentFolderPulse 2.5s ease-in-out infinite;
+}
+
+/* Subtle animations for path visualization */
+@keyframes subtleArrowPulse {
+    0%, 100% { 
+        opacity: 0.8; 
+        transform: translateY(-50%) translateX(0); 
+    }
+    50% { 
+        opacity: 1; 
+        transform: translateY(-50%) translateX(2px); 
+    }
+}
+
+@keyframes currentFolderPulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: translateY(-50%) scale(1); 
+    }
+    50% { 
+        opacity: 0.9; 
+        transform: translateY(-50%) scale(1.1); 
+    }
+}
+
+/* ===== ENHANCED FILE SELECTION STYLING ===== */
+
+.file-item.selected {
+    background: var(--file-selected-bg) !important;
+    border-color: var(--file-selected-border) !important;
+    transform: translateX(6px) !important;
+    box-shadow: 0 3px 12px rgba(52, 211, 153, 0.3) !important;
+}
+
+.file-item.selected .item-name,
+.file-item.selected .item-meta {
+    color: var(--file-selected-text) !important;
+    font-weight: 600;
+}
+
+.file-item.selected .file-icon {
+    color: var(--file-selected-text) !important;
+}
+
+.file-item.selected .file-extension {
+    background: rgba(52, 211, 153, 0.2);
+    color: var(--file-selected-text);
+    border-color: var(--file-selected-border);
 }
 
 /* Enhanced Item Structure */
@@ -486,98 +609,10 @@ html, body {
     transform: translateX(2px);
 }
 
-/* Enhanced Selection States */
-.file-item.selected {
-    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%) !important;
-    color: white !important;
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4) !important;
-    transform: translateX(6px) !important;
-    border-color: var(--success-color) !important;
-}
-
-.folder-item.selected {
-    background: var(--path-gradient) !important;
-    color: white !important;
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4) !important;
-    transform: translateX(6px) !important;
-    border-color: var(--item-active-folder) !important;
-}
-
-/* Smart Active Path Visualization */
-.folder-item.selected.has-next-column {
-    background: var(--path-gradient) !important;
-    color: white !important;
-    box-shadow: 0 6px 24px rgba(30, 64, 175, 0.6), 
-                0 0 0 2px var(--primary-color) !important;
-    border: 2px solid var(--primary-color) !important;
-    transform: translateX(8px) !important;
-    position: relative;
-    z-index: 5;
-    animation: smartPathGlow 3s ease-in-out infinite;
-}
-
-@keyframes smartPathGlow {
-    0%, 100% { 
-        box-shadow: 0 6px 24px rgba(30, 64, 175, 0.6), 
-                    0 0 0 2px var(--primary-color);
-    }
-    50% { 
-        box-shadow: 0 8px 32px rgba(30, 64, 175, 0.8), 
-                    0 0 0 3px var(--primary-light),
-                    0 0 20px rgba(59, 130, 246, 0.4);
-    }
-}
-
-.folder-item.selected.has-next-column::before {
-    content: '';
-    position: absolute;
-    left: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 100%;
-    background: var(--path-gradient);
-    border-radius: 2px;
-    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
-}
-
-.folder-item.selected.has-next-column::after {
-    content: "▶";
-    position: absolute;
-    right: var(--spacing-md);
-    font-size: 1.2rem;
-    color: var(--surface);
-    font-weight: bold;
-    animation: smartArrowPulse 2s ease-in-out infinite;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 
-                 0 1px 2px rgba(0, 0, 0, 0.3);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-    z-index: 10;
-}
-
-@keyframes smartArrowPulse {
-    0%, 100% { 
-        opacity: 0.9; 
-        transform: scale(1) translateX(0); 
-    }
-    50% { 
-        opacity: 1; 
-        transform: scale(1.1) translateX(2px); 
-    }
-}
-
-.file-item.selected .item-name,
-.file-item.selected .item-meta,
-.folder-item.selected .item-name,
-.folder-item.selected .item-meta {
-    color: white !important;
-    font-weight: 600;
-}
-
-.file-item.selected .file-extension {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border-color: rgba(255, 255, 255, 0.3);
+/* Hide default arrows when path visualization is active */
+.folder-item.in-path .item-arrow,
+.folder-item.selected .item-arrow {
+    display: none;
 }
 
 /* Enhanced Icon Styling */
@@ -594,13 +629,6 @@ html, body {
 
 .file-icon {
     color: var(--text-secondary);
-}
-
-.file-item.selected .file-icon,
-.folder-item.selected .folder-icon {
-    color: white !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    transform: scale(1.1);
 }
 
 .file-item:hover .file-icon,

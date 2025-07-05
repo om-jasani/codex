@@ -322,29 +322,25 @@ function optimizeColumnDisplay() {
     
     const columns = container.querySelectorAll('.column');
     
-    // If we have more columns than can fit, intelligently manage visibility
-    if (columns.length > maxVisibleColumns) {
-        // Keep the last maxVisibleColumns visible
-        const startIndex = Math.max(0, columns.length - maxVisibleColumns);
-        
-        columns.forEach((column, index) => {
-            if (index < startIndex) {
-                // Fade out old columns
-                column.style.opacity = '0.3';
-                column.style.transform = 'translateX(-20px)';
-                column.style.pointerEvents = 'none';
-            } else {
-                column.style.opacity = '1';
-                column.style.transform = 'translateX(0)';
-                column.style.pointerEvents = 'auto';
-            }
-        });
-    }
+    // Ensure all columns are fully visible and functional
+    columns.forEach((column) => {
+        column.style.opacity = '1';
+        column.style.transform = 'translateX(0)';
+        column.style.pointerEvents = 'auto';
+        column.style.filter = 'none';
+        column.style.zIndex = 'auto';
+    });
 }
 
 function restoreActivePathVisuals() {
+    // Clear all previous path indicators first
+    document.querySelectorAll('.file-item, .folder-item').forEach(el => {
+        el.classList.remove('selected', 'in-path', 'has-next-column');
+    });
+
+    // Apply path visualization for each item in currentPath
     currentPath.forEach((pathItem, pathIndex) => {
-        if (pathIndex === 0) return;
+        if (pathIndex === 0) return; // Skip root
         
         const columnIndex = pathIndex - 1;
         const column = document.querySelectorAll('.column')[columnIndex];
@@ -357,13 +353,20 @@ function restoreActivePathVisuals() {
             const itemPath = itemElement.dataset.itemPath;
             
             if (itemName === pathItem.name || itemPath === pathItem.path) {
-                itemElement.classList.add('selected');
+                // Determine if this is the last item in the path (currently selected)
+                const isCurrentlySelected = pathIndex === currentPath.length - 1;
                 
-                // Add path indicator
-                itemElement.classList.add('in-path');
-                
-                if (pathIndex < currentPath.length - 1) {
-                    itemElement.classList.add('has-next-column');
+                if (isCurrentlySelected) {
+                    // This is the currently selected/active folder
+                    itemElement.classList.add('selected');
+                } else {
+                    // This is an intermediate folder in the path
+                    itemElement.classList.add('in-path');
+                    
+                    // If it has a next column, add the has-next-column class
+                    if (pathIndex < currentPath.length - 1) {
+                        itemElement.classList.add('has-next-column');
+                    }
                 }
                 
                 selectedItems[columnIndex] = {
@@ -371,6 +374,42 @@ function restoreActivePathVisuals() {
                     path: itemPath,
                     type: itemElement.dataset.itemType
                 };
+            }
+        });
+    });
+}
+
+function restoreActivePathVisualsForFileSelection() {
+    // This function maintains folder path highlighting when files are selected
+    // It only highlights folders in the path, not the file itself
+    currentPath.forEach((pathItem, pathIndex) => {
+        if (pathIndex === 0) return; // Skip root
+        
+        const columnIndex = pathIndex - 1;
+        const column = document.querySelectorAll('.column')[columnIndex];
+        
+        if (!column) return;
+        
+        const folderItems = column.querySelectorAll('.folder-item');
+        folderItems.forEach(itemElement => {
+            const itemName = itemElement.dataset.itemName;
+            const itemPath = itemElement.dataset.itemPath;
+            
+            if (itemName === pathItem.name || itemPath === pathItem.path) {
+                // This is a folder in our navigation path
+                if (pathIndex === currentPath.length - 1) {
+                    // This is the last folder in our path (parent of selected file)
+                    itemElement.classList.add('in-path');
+                    itemElement.classList.add('has-next-column');
+                } else {
+                    // This is an intermediate folder in the path
+                    itemElement.classList.add('in-path');
+                    
+                    // If it has a next column, add the has-next-column class
+                    if (pathIndex < currentPath.length - 1) {
+                        itemElement.classList.add('has-next-column');
+                    }
+                }
             }
         });
     });
@@ -563,13 +602,24 @@ function formatFileSize(bytes) {
 async function handleItemClick(item, columnIndex, itemElement) {
     if (isNavigating) return;
     
-    // Clear previous selections
+    // Clear previous selections but MAINTAIN path highlighting for folders
     document.querySelectorAll('.file-item, .folder-item').forEach(el => {
-        el.classList.remove('selected', 'has-next-column', 'in-path');
+        el.classList.remove('selected');
         el.style.transform = '';
+        // Only clear path indicators if it's not a folder in our current path
+        if (item.type === 'file') {
+            // For file selections, we keep folder path highlighting
+            // Only remove file-specific selections
+            if (el.classList.contains('file-item')) {
+                el.classList.remove('has-next-column', 'in-path');
+            }
+        } else {
+            // For folder selections, clear everything as we'll rebuild the path
+            el.classList.remove('has-next-column', 'in-path');
+        }
     });
     
-    // Add selection animation
+    // Add selection to clicked item
     itemElement.classList.add('selected');
     selectedItems[columnIndex] = item;
     
@@ -595,9 +645,6 @@ async function handleItemClick(item, columnIndex, itemElement) {
     currentPath = currentPath.slice(0, columnIndex + 1);
     
     if (item.type === 'folder') {
-        itemElement.classList.add('has-next-column');
-        itemElement.classList.add('in-path');
-        
         // Add folder opening animation
         showFolderLoadingAnimation(itemElement);
         
@@ -656,10 +703,9 @@ async function handleItemClick(item, columnIndex, itemElement) {
         updatePathIndicator();
         updateNavigationButtons();
         
-        // Optimize column display
-        optimizeColumnDisplay();
-        
+        // Apply path visualization to show the full navigation trail
         setTimeout(() => {
+            restoreActivePathVisuals();
             scrollToActiveColumn();
             
             setTimeout(() => {
@@ -667,7 +713,13 @@ async function handleItemClick(item, columnIndex, itemElement) {
             }, 400);
         }, 100);
         
+        // Optimize column display
+        optimizeColumnDisplay();
+        
     } else {
+        // For file selection, maintain folder path highlighting and show file preview
+        // Restore path highlighting for folders while keeping file selected
+        restoreActivePathVisualsForFileSelection();
         await showFilePreview(item);
     }
 }
@@ -744,6 +796,11 @@ function restoreHistoryState() {
     updateBreadcrumb();
     updatePathIndicator();
     updateNavigationButtons();
+    
+    // Ensure path highlighting is restored
+    setTimeout(() => {
+        restoreActivePathVisuals();
+    }, 50);
     
     setTimeout(() => {
         isNavigating = false;
@@ -1497,6 +1554,9 @@ function closeFilePreviewModal() {
             modal.style.display = 'none';
             document.body.style.overflow = '';
             currentModalFile = null;
+            
+            // Restore path highlighting when closing file modal
+            restoreActivePathVisualsForFileSelection();
         }, 300);
     }
 }
@@ -1558,6 +1618,7 @@ function navigateToBreadcrumbItem(index) {
         restoreActivePathVisuals();
         updateBreadcrumb();
         updatePathIndicator();
+        updateNavigationButtons();
     }, 10);
 }
 

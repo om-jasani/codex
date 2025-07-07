@@ -10,60 +10,58 @@
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar Toggle for Mobile -->
-        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Open sidebar" aria-controls="sidebar" aria-expanded="false" tabindex="0">
-            <i class="fas fa-bars"></i>
-        </button>
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar" role="navigation" aria-label="Admin sidebar">
+        <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <img src="/images/circuit-logo.svg" alt="DC Codex" style="width: 24px; height: 24px; margin-right: 8px;">
                     <span>DC Codex Admin</span>
                 </div>
             </div>
+            
             <nav class="sidebar-nav">
-                <button class="nav-item active" onclick="event.preventDefault(); showSection('dashboard');" tabindex="0" aria-current="page">
+                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
                     <i class="fas fa-dashboard"></i>
                     <span>Dashboard</span>
-                </button>
-                <button class="nav-item" onclick="event.preventDefault(); showSection('files');" tabindex="0">
+                </a>
+                <a href="#files" class="nav-item" onclick="showSection('files')">
                     <i class="fas fa-file-code"></i>
                     <span>Manage Files</span>
-                </button>
-                <button class="nav-item" onclick="event.preventDefault(); showSection('projects');" tabindex="0">
+                </a>
+                <a href="#projects" class="nav-item" onclick="showSection('projects')">
                     <i class="fas fa-folder"></i>
                     <span>Projects</span>
-                </button>
-                <button class="nav-item" onclick="event.preventDefault(); showSection('tags');" tabindex="0">
+                </a>
+                <a href="#tags" class="nav-item" onclick="showSection('tags')">
                     <i class="fas fa-tags"></i>
                     <span>Tags</span>
-                </button>
-                <button class="nav-item" onclick="event.preventDefault(); showSection('indexing');" tabindex="0">
+                </a>
+                <a href="#indexing" class="nav-item" onclick="showSection('indexing')">
                     <i class="fas fa-sync"></i>
                     <span>File Indexing</span>
-                </button>
-                <button class="nav-item" onclick="event.preventDefault(); showSection('maintenance');" tabindex="0">
+                </a>
+                <a href="#maintenance" class="nav-item" onclick="showSection('maintenance')">
                     <i class="fas fa-tools"></i>
                     <span>Maintenance</span>
-                </button>
-                <button class="nav-item" onclick="event.preventDefault(); showSection('users');" tabindex="0">
+                </a>
+                <a href="#users" class="nav-item" onclick="showSection('users')">
                     <i class="fas fa-users"></i>
                     <span>Users</span>
-                </button>
-                <button class="nav-item" onclick="event.preventDefault(); showSection('backup');" tabindex="0">
+                </a>
+                <a href="#backup" class="nav-item" onclick="showSection('backup')">
                     <i class="fas fa-download"></i>
                     <span>Backup & Restore</span>
-                </button>
-                <a href="/" class="nav-item" tabindex="0">
+                </a>
+                <a href="/" class="nav-item">
                     <i class="fas fa-folder-tree"></i>
                     <span>Browse Repository</span>
                 </a>
-                <a href="/search.html" class="nav-item" tabindex="0">
+                <a href="/search.html" class="nav-item">
                     <i class="fas fa-search"></i>
                     <span>Search</span>
                 </a>
             </nav>
+            
             <div class="sidebar-footer">
                 <div class="admin-info">
                     <i class="fas fa-user-shield"></i>
@@ -71,7 +69,7 @@
                 </div>
             </div>
         </aside>
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
         <!-- Main Content -->
         <main class="admin-main">
             <!-- Dashboard Section -->

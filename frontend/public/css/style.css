@@ -628,8 +628,8 @@ body {
     align-items: center;
 }
 
-/* Enhanced Modal */
-.modal {
+/* Enhanced Modal - File Preview Only */
+.modal#filePreviewModal {
     display: none;
     position: fixed;
     top: 0;
@@ -644,7 +644,7 @@ body {
     box-sizing: border-box;
 }
 
-.enhanced-modal {
+.modal#filePreviewModal .enhanced-modal {
     position: relative;
     background-color: var(--surface);
     margin: 0 auto;
@@ -660,7 +660,7 @@ body {
     max-height: none;
 }
 
-.enhanced-modal.fullscreen {
+.modal#filePreviewModal .enhanced-modal.fullscreen {
     width: 100vw;
     height: 100vh;
     border-radius: 0;
@@ -678,8 +678,8 @@ body {
     }
 }
 
-/* Enhanced Modal Header */
-.modal-header {
+/* Enhanced Modal Header - File Preview Only */
+.modal#filePreviewModal .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -689,7 +689,7 @@ body {
     flex-shrink: 0;
 }
 
-.modal-title {
+.modal#filePreviewModal .modal-title {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -707,7 +707,7 @@ body {
     min-width: 0;
 }
 
-.modal-title h2 {
+.modal#filePreviewModal .modal-title h2 {
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
     font-weight: 600;
@@ -740,25 +740,25 @@ body {
     color: white;
 }
 
-.modal-controls {
+.modal#filePreviewModal .modal-controls {
     display: flex;
     align-items: center;
     gap: 1rem;
     flex-shrink: 0;
 }
 
-.keyboard-shortcuts {
+.modal#filePreviewModal .keyboard-shortcuts {
     display: flex;
     gap: 1rem;
     font-size: 0.75rem;
     color: var(--text-secondary);
 }
 
-.shortcut-group {
+.modal#filePreviewModal .shortcut-group {
     white-space: nowrap;
 }
 
-.shortcut-group kbd {
+.modal#filePreviewModal .shortcut-group kbd {
     background: var(--surface);
     border: 1px solid var(--border-color);
     border-radius: 0.25rem;
@@ -768,7 +768,7 @@ body {
     color: var(--text-primary);
 }
 
-.modal-close {
+.modal#filePreviewModal .modal-close {
     background: var(--hover-bg);
     border: 1px solid var(--border-color);
     font-size: 1.2rem;
@@ -785,7 +785,7 @@ body {
     flex-shrink: 0;
 }
 
-.modal-close:hover {
+.modal#filePreviewModal .modal-close:hover {
     background: #fee2e2;
     color: #dc2626;
     border-color: #fecaca;
@@ -793,16 +793,16 @@ body {
     box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
 }
 
-/* Modal Body */
-.modal-body {
+/* Modal Body - File Preview Only */
+.modal#filePreviewModal .modal-body {
     display: flex;
     flex: 1;
     overflow: hidden;
     min-height: 0;
 }
 
-/* Modal Sidebar */
-.modal-sidebar {
+/* Modal Sidebar - File Preview Only */
+.modal#filePreviewModal .modal-sidebar {
     width: 320px;
     background: var(--background);
     border-right: 1px solid var(--border-color);
@@ -811,15 +811,15 @@ body {
     flex-shrink: 0;
 }
 
-.modal-sidebar::-webkit-scrollbar {
+.modal#filePreviewModal .modal-sidebar::-webkit-scrollbar {
     width: 6px;
 }
 
-.modal-sidebar::-webkit-scrollbar-track {
+.modal#filePreviewModal .modal-sidebar::-webkit-scrollbar-track {
     background: var(--background);
 }
 
-.modal-sidebar::-webkit-scrollbar-thumb {
+.modal#filePreviewModal .modal-sidebar::-webkit-scrollbar-thumb {
     background: var(--border-color);
     border-radius: 3px;
 }
@@ -1024,8 +1024,8 @@ body {
     color: var(--text-secondary);
 }
 
-/* Modal Main Content */
-.modal-main {
+/* Modal Main Content - File Preview Only */
+.modal#filePreviewModal .modal-main {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -1444,8 +1444,8 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-/* Loading and Error States */
-.modal-loading {
+/* Loading and Error States - File Preview Only */
+.modal#filePreviewModal .modal-loading {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1457,11 +1457,11 @@ body {
     padding: 2rem;
 }
 
-.modal-loading .loading-spinner {
+.modal#filePreviewModal .modal-loading .loading-spinner {
     position: relative;
 }
 
-.modal-loading .spinner {
+.modal#filePreviewModal .modal-loading .spinner {
     width: 48px;
     height: 48px;
     border: 4px solid var(--border-color);
@@ -1470,13 +1470,13 @@ body {
     animation: spin 1s linear infinite;
 }
 
-.modal-loading h3 {
+.modal#filePreviewModal .modal-loading h3 {
     margin: 0;
     font-size: 1.25rem;
     color: var(--text-primary);
 }
 
-.modal-loading p {
+.modal#filePreviewModal .modal-loading p {
     margin: 0;
     color: var(--text-secondary);
 }
@@ -1591,17 +1591,232 @@ body {
     color: var(--primary-color);
 }
 
+/* Search Modal Styles - For #fileModal in index.html */
+.modal#fileModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal#fileModal .modal-content {
+    position: relative;
+    background-color: var(--surface);
+    margin: 5% auto;
+    width: 90%;
+    max-width: 1200px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-xl);
+    animation: modalFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 85vh;
+}
+
+.modal#fileModal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background);
+    flex-shrink: 0;
+}
+
+.modal#fileModal .modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal#fileModal .close-button {
+    background: var(--hover-bg);
+    border: 1px solid var(--border-color);
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+}
+
+.modal#fileModal .close-button:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fecaca;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+}
+
+.modal#fileModal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 2rem;
+    background: var(--background);
+}
+
+.modal#fileModal .file-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.modal#fileModal .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.modal#fileModal .info-item i {
+    color: var(--text-tertiary);
+}
+
+.modal#fileModal .file-path {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--hover-bg);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    word-break: break-all;
+}
+
+.modal#fileModal .file-path i {
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+}
+
+.modal#fileModal .code-container {
+    margin-bottom: 1rem;
+}
+
+.modal#fileModal .code-preview {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.modal#fileModal .code-preview code {
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: var(--text-primary);
+}
+
+.modal#fileModal .file-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+}
+
+.modal#fileModal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--background);
+    flex-shrink: 0;
+}
+
+.modal#fileModal .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.modal#fileModal .btn-secondary {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.modal#fileModal .btn-secondary:hover {
+    background: var(--surface);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive design for search modal */
+@media (max-width: 768px) {
+    .modal#fileModal .modal-content {
+        width: 95%;
+        margin: 2% auto;
+        max-height: 90vh;
+    }
+    
+    .modal#fileModal .modal-header {
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal#fileModal .modal-body {
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal#fileModal .modal-footer {
+        padding: 1rem 1.5rem;
+    }
+    
+    .modal#fileModal .file-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
     .main-content {
         padding: 1rem;
     }
     
-    .modal-sidebar {
+    .modal#filePreviewModal .modal-sidebar {
         width: 280px;
     }
     
-    .keyboard-shortcuts {
+    .modal#filePreviewModal .keyboard-shortcuts {
         display: none;
     }
 }
@@ -1652,11 +1867,11 @@ body {
         border-radius: 0;
     }
     
-    .modal-body {
+    .modal#filePreviewModal .modal-body {
         flex-direction: column;
     }
     
-    .modal-sidebar {
+    .modal#filePreviewModal .modal-sidebar {
         width: 100%;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
@@ -1676,7 +1891,7 @@ body {
         font-size: 12px;
     }
     
-    .modal-header {
+    .modal#filePreviewModal .modal-header {
         padding: 1rem;
     }
     

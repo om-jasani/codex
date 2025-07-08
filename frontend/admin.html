@@ -415,9 +415,14 @@
                 </div>
             </section>
 
-            <!-- System Maintenance Panel -->
-            <div class="admin-panel" id="maintenanceSection" style="display: none;">
-                <h2>System Maintenance</h2>
+            <!-- Maintenance Section -->
+            <section id="maintenance-section" class="content-section">
+                <div class="section-header">
+                    <h1>System Maintenance</h1>
+                    <button class="btn btn-primary" onclick="loadMaintenanceStats()">
+                        <i class="fas fa-sync"></i> Refresh Status
+                    </button>
+                </div>
                 
                 <div class="maintenance-grid">
                     <!-- File System Analysis -->
@@ -474,12 +479,12 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
     <!-- Upload Files Modal -->
-    <div id="uploadModal" class="modal">
+    <div id="uploadModal" class="modal admin-modal">
         <div class="modal-content modal-large">
             <div class="modal-header">
                 <h3>Upload Files</h3>
@@ -532,7 +537,7 @@
     </div>
 
     <!-- Add File Modal -->
-    <div id="addFileModal" class="modal">
+    <div id="addFileModal" class="modal admin-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Add File Location</h3>
@@ -579,7 +584,7 @@
     </div>
 
     <!-- Edit File Modal -->
-    <div id="editFileModal" class="modal">
+    <div id="editFileModal" class="modal admin-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Edit File</h3>
@@ -619,7 +624,7 @@
     </div>
 
     <!-- Add Project Modal -->
-    <div id="addProjectModal" class="modal">
+    <div id="addProjectModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Create New Project</h3>
@@ -650,7 +655,7 @@
     </div>
 
     <!-- Edit Project Modal -->
-    <div id="editProjectModal" class="modal">
+    <div id="editProjectModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Edit Project</h3>
@@ -679,7 +684,7 @@
     </div>
 
     <!-- Edit Tag Modal -->
-    <div id="editTagModal" class="modal">
+    <div id="editTagModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Edit Tag</h3>
@@ -708,7 +713,7 @@
     </div>
 
     <!-- Add Tag Modal -->
-    <div id="addTagModal" class="modal">
+    <div id="addTagModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Create New Tag</h3>
@@ -739,7 +744,7 @@
     </div>
 
     <!-- Add User Modal -->
-    <div id="addUserModal" class="modal">
+    <div id="addUserModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Add New User</h3>
@@ -782,7 +787,7 @@
     </div>
 
     <!-- Edit User Modal -->
-    <div id="editUserModal" class="modal">
+    <div id="editUserModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Edit User</h3>
@@ -826,7 +831,7 @@
     </div>
 
     <!-- Create Backup Modal -->
-    <div id="createBackupModal" class="modal">
+    <div id="createBackupModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Create Backup</h3>
@@ -862,7 +867,7 @@
     </div>
 
     <!-- Restore Backup Modal -->
-    <div id="restoreBackupModal" class="modal">
+    <div id="restoreBackupModal" class="modal admin-modal">
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h3>Restore Backup</h3>

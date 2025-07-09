@@ -73,13 +73,15 @@ function handleItemUnhover(e) {
 function updateMaxVisibleColumns() {
     const screenWidth = window.innerWidth;
     if (screenWidth < 768) {
-        maxVisibleColumns = 2;
-    } else if (screenWidth < 1024) {
         maxVisibleColumns = 3;
-    } else if (screenWidth < 1400) {
+    } else if (screenWidth < 1024) {
         maxVisibleColumns = 4;
-    } else {
+    } else if (screenWidth < 1400) {
         maxVisibleColumns = 5;
+    } else if (screenWidth < 1920) {
+        maxVisibleColumns = 6;
+    } else {
+        maxVisibleColumns = 7;
     }
 }
 

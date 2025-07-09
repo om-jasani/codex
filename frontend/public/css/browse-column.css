@@ -119,8 +119,8 @@ html, body {
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    padding: var(--spacing-md) var(--spacing-lg);
-    gap: var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
+    gap: var(--spacing-md);
     flex-shrink: 0;
 }
 
@@ -130,8 +130,8 @@ html, body {
 }
 
 .nav-btn {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border: none;
     background: var(--surface);
     color: var(--text-secondary);
@@ -186,9 +186,9 @@ html, body {
 .breadcrumb-item {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
     color: var(--text-secondary);
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     transition: all var(--transition-normal);
@@ -197,6 +197,7 @@ html, body {
     position: relative;
     font-weight: 500;
     white-space: nowrap;
+    font-size: 0.8rem;
 }
 
 .breadcrumb-item:hover {
@@ -235,11 +236,11 @@ html, body {
 .path-info {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
-    font-size: 0.875rem;
+    gap: var(--spacing-xs);
+    font-size: 0.8rem;
     color: var(--text-secondary);
     background: var(--surface-elevated);
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--border-light);
 }
@@ -290,9 +291,9 @@ html, body {
     border-right: 1px solid var(--column-border);
     display: flex;
     flex-direction: column;
-    min-width: 320px;
-    max-width: 400px;
-    width: 350px;
+    min-width: 200px;
+    max-width: 220px;
+    width: 250px;
     background: var(--column-bg);
     transition: all var(--transition-normal);
     position: relative;
@@ -324,7 +325,7 @@ html, body {
 /* Enhanced Column Header */
 .column-header {
     background: linear-gradient(135deg, var(--column-header-bg) 0%, var(--surface-elevated) 100%);
-    padding: var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
     border-bottom: 1px solid var(--column-border);
     display: flex;
     justify-content: space-between;
@@ -338,31 +339,31 @@ html, body {
 .column-title-section {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 1.125rem;
+    font-size: 0.95rem;
 }
 
 .column-title-section i {
     color: var(--primary-color);
-    font-size: 1.25rem;
+    font-size: 1rem;
 }
 
 .column-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
 .item-count {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     background: var(--surface);
-    padding: 0.25rem 0.5rem;
-    border-radius: 1rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.75rem;
     border: 1px solid var(--border-light);
     font-weight: 500;
-    min-width: 40px;
+    min-width: 30px;
     text-align: center;
 }
 
@@ -370,7 +371,7 @@ html, body {
 .column-content {
     flex: 1;
     overflow-y: auto;
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xs);
     background: var(--column-bg);
 }
 
@@ -395,12 +396,12 @@ html, body {
 .file-item, .folder-item {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
     cursor: pointer;
     transition: all var(--transition-normal);
-    border-radius: var(--item-border-radius);
-    margin-bottom: var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 2px;
     position: relative;
     background: var(--surface);
     border: 1px solid transparent;
@@ -408,8 +409,8 @@ html, body {
 
 .file-item:hover, .folder-item:hover {
     background: var(--item-hover);
-    transform: translateX(4px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateX(2px);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
     border-color: var(--border-color);
 }
 
@@ -420,7 +421,7 @@ html, body {
     background: var(--path-subtle-bg);
     border: 1px solid var(--path-subtle-border);
     position: relative;
-    transform: translateX(2px);
+    transform: translateX(1px);
     box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
 }
 
@@ -451,7 +452,7 @@ html, body {
 .folder-item.in-path.has-next-column {
     background: var(--path-active-bg);
     border-color: var(--path-active-border);
-    transform: translateX(4px);
+    transform: translateX(2px);
     box-shadow: 0 2px 6px rgba(59, 130, 246, 0.2);
 }
 
@@ -475,7 +476,7 @@ html, body {
     background: var(--path-current-bg) !important;
     color: var(--path-current-text) !important;
     border-color: var(--primary-color) !important;
-    transform: translateX(6px) !important;
+    transform: translateX(3px) !important;
     box-shadow: 0 3px 12px rgba(37, 99, 235, 0.3) !important;
 }
 
@@ -527,7 +528,7 @@ html, body {
 .file-item.selected {
     background: var(--file-selected-bg) !important;
     border-color: var(--file-selected-border) !important;
-    transform: translateX(6px) !important;
+    transform: translateX(3px) !important;
     box-shadow: 0 3px 12px rgba(52, 211, 153, 0.3) !important;
 }
 
@@ -551,7 +552,7 @@ html, body {
 .item-main {
     display: flex;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
     flex: 1;
     min-width: 0;
 }
@@ -563,10 +564,10 @@ html, body {
 
 .item-name {
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-primary);
-    line-height: 1.4;
-    margin-bottom: 2px;
+    line-height: 1.1    ;
+    margin-bottom: 1px;
     transition: color var(--transition-fast);
     display: block;
     overflow: hidden;
@@ -575,10 +576,10 @@ html, body {
 }
 
 .item-meta {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--text-muted);
     font-weight: 400;
-    line-height: 1.3;
+    line-height: 1.2;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -586,11 +587,11 @@ html, body {
 }
 
 .file-extension {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-muted);
     background: var(--surface-elevated);
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.25rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.2rem;
     font-weight: 600;
     text-transform: uppercase;
     margin-left: auto;
@@ -617,8 +618,8 @@ html, body {
 
 /* Enhanced Icon Styling */
 .file-icon, .folder-icon {
-    font-size: 1.3rem;
-    width: 1.3rem;
+    font-size: 1.1rem;
+    width: 1.1rem;
     text-align: center;
     transition: all var(--transition-normal);
 }
@@ -1664,20 +1665,21 @@ html, body {
 /* Responsive Design */
 @media (max-width: 1400px) {
     .column {
-        min-width: 280px;
-        width: 320px;
+        min-width: 200px;
+        width: 230px;
     }
 }
 
 @media (max-width: 1024px) {
     .column {
-        min-width: 260px;
-        width: 300px;
+        min-width: 180px;
+        width: 210px;
     }
     
     .smart-navigation {
         flex-direction: column;
-        gap: var(--spacing-md);
+        gap: var(--spacing-sm);
+        padding: var(--spacing-xs) var(--spacing-sm);
     }
     
     .modal-sidebar {

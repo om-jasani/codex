@@ -6,6 +6,7 @@
     <title>DC Codex - Code Repository Browser</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/browse-column.css">
+    <link rel="stylesheet" href="css/file-preview.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
 </head>
@@ -103,39 +104,6 @@
         </main>
     </div>
 
-    <!-- Enhanced File Preview Modal -->
-    <div id="filePreviewModal" style="display: none;" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">
-                    <i id="modalFileIcon" class="file-icon fas fa-file"></i>
-                    <h2 id="modalFileName">File Preview</h2>
-                    <div class="file-badges" id="fileBadges"></div>
-                </div>
-                <div class="modal-controls">
-                    <div class="keyboard-shortcuts" title="Keyboard Shortcuts">
-                        <span class="shortcut-info">ESC: Close | F11: Fullscreen | Ctrl+/-: Font Size</span>
-                    </div>
-                    <button id="modalCloseBtn" class="modal-close">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="modal-body">
-                <div class="modal-sidebar">
-                    <div id="modalFileMeta">
-                        <!-- File metadata will be populated here -->
-                    </div>
-                </div>
-                <div class="modal-main">
-                    <div id="modalFileBody">
-                        <!-- File content will be populated here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
@@ -168,7 +136,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-makefile.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-r.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-matlab.min.js"></script>
+    
+    <!-- File Preview Module -->
+    <script src="js/file-preview.js"></script>
+    
+    <!-- Browse Column Script -->
     <script src="js/browse-column.js"></script>
+    
     <script>
         // Authentication functions for navigation
         const API_BASE = '/api';

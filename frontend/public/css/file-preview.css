@@ -61,32 +61,32 @@
 
 /* Modal Header */
 .dc-codex-modal-header {
-    padding: 1.5rem 2rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: #f8fafc;
     flex-shrink: 0;
-    min-height: 80px;
+    min-height: 60px;
 }
 
 .dc-codex-modal-title {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     flex: 1;
     min-width: 0;
 }
 
 .dc-codex-modal-title .dc-codex-file-icon {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     flex-shrink: 0;
 }
 
 .dc-codex-modal-title h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 600;
     color: #1e293b;
     overflow: hidden;
@@ -97,13 +97,13 @@
 .dc-codex-file-badges {
     display: flex;
     gap: 0.25rem;
-    margin-left: 1rem;
+    margin-left: 0.75rem;
 }
 
 .dc-codex-badge {
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     background: #2563eb;
@@ -121,7 +121,7 @@
 .dc-codex-modal-controls {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .dc-codex-keyboard-shortcuts {
@@ -135,15 +135,15 @@
     border: 1px solid #e2e8f0;
     color: #64748b;
     cursor: pointer;
-    padding: 0.75rem;
+    padding: 0.625rem;
     border-radius: 0.375rem;
     transition: all 0.25s ease-in-out;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    font-size: 1.1rem;
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
 }
 
 .dc-codex-modal-close:hover {
@@ -164,7 +164,7 @@
 
 /* Modal Sidebar */
 .dc-codex-modal-sidebar {
-    width: 320px;
+    width: 280px;
     background: #f1f5f9;
     border-right: 1px solid #e2e8f0;
     overflow: hidden;
@@ -175,7 +175,7 @@
 
 /* File Navigation Header */
 .dc-codex-file-nav-header {
-    padding: 1.5rem 1.5rem 1rem;
+    padding: 1rem 1rem 0.75rem;
     border-bottom: 1px solid #e2e8f0;
     background: #f8fafc;
 }
@@ -183,14 +183,14 @@
 .dc-codex-file-nav-title {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
+    gap: 0.5rem;
+    margin-bottom: 0.375rem;
 }
 
 .dc-codex-file-nav-title i {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     color: #2563eb;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
 .dc-codex-file-nav-title h3 {
@@ -220,15 +220,15 @@
 
 /* File Navigation Controls */
 .dc-codex-file-nav-controls {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     display: flex;
-    gap: 0.5rem;
+    gap: 0.375rem;
     border-bottom: 1px solid #e2e8f0;
 }
 
 .dc-codex-nav-btn {
     flex: 1;
-    padding: 0.5rem;
+    padding: 0.375rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 0.375rem;
@@ -238,7 +238,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
 }
 
 .dc-codex-nav-btn:hover {
@@ -260,17 +260,17 @@
 
 /* File Filter Search */
 .dc-codex-file-nav-search {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-bottom: 1px solid #e2e8f0;
 }
 
 .dc-codex-file-filter-input {
     width: 100%;
-    padding: 0.5rem 0.75rem;
+    padding: 0.375rem 0.625rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 0.375rem;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     color: #1e293b;
     transition: all 0.2s ease;
 }
@@ -309,12 +309,12 @@
 .dc-codex-file-list-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    margin-bottom: 0.25rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    margin-bottom: 0.125rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
+    border-radius: 0.25rem;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
@@ -324,7 +324,7 @@
 .dc-codex-file-list-item:hover {
     background: #f8fafc;
     border-color: #cbd5e1;
-    transform: translateX(4px);
+    transform: translateX(2px);
 }
 
 .dc-codex-file-list-item.active {
@@ -349,7 +349,7 @@
 }
 
 .dc-codex-file-list-item-name {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: #1e293b;
     overflow: hidden;
@@ -363,9 +363,9 @@
 }
 
 .dc-codex-file-list-item-meta {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #94a3b8;
-    margin-top: 2px;
+    margin-top: 1px;
 }
 
 .dc-codex-file-list-item-indicator {
@@ -380,7 +380,7 @@
 
 /* File Navigation Footer */
 .dc-codex-file-nav-footer {
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1rem;
     border-top: 1px solid #e2e8f0;
     background: #f8fafc;
 }
@@ -389,15 +389,15 @@
 .dc-codex-file-actions-section,
 .dc-codex-file-controls-section,
 .dc-codex-keyboard-shortcuts-section {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .dc-codex-file-info-section h3,
 .dc-codex-file-actions-section h3,
 .dc-codex-file-controls-section h3,
 .dc-codex-keyboard-shortcuts-section h3 {
-    margin: 0 0 1rem 0;
-    font-size: 0.875rem;
+    margin: 0 0 0.75rem 0;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #1e293b;
     text-transform: uppercase;
@@ -407,13 +407,13 @@
 .dc-codex-file-meta-grid {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 .dc-codex-file-meta-item {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.2rem;
 }
 
 .dc-codex-file-meta-label {
@@ -425,14 +425,14 @@
 }
 
 .dc-codex-file-meta-value {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     color: #1e293b;
     font-weight: 500;
     word-break: break-all;
-    line-height: 1.4;
-    padding: 0.5rem;
+    line-height: 1.3;
+    padding: 0.375rem;
     background: #ffffff;
-    border-radius: 0.375rem;
+    border-radius: 0.25rem;
     border: 1px solid #e2e8f0;
 }
 
@@ -440,19 +440,19 @@
 .dc-codex-action-buttons {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.375rem;
 }
 
 .dc-codex-action-btn {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
     background: #ffffff;
     color: #1e293b;
     border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.25s ease-in-out;
@@ -617,7 +617,7 @@
 .dc-codex-code-header {
     background: #f1f5f9;
     border-bottom: 1px solid #e2e8f0;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -627,42 +627,42 @@
 .dc-codex-code-title {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     font-weight: 500;
     color: #1e293b;
 }
 
 .dc-codex-code-title i {
-    font-size: 1.125rem;
+    font-size: 1rem;
 }
 
 .dc-codex-line-count {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #94a3b8;
     background: #ffffff;
-    padding: 0.25rem 0.5rem;
-    border-radius: 1rem;
-    margin-left: 0.5rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.75rem;
+    margin-left: 0.375rem;
 }
 
 .dc-codex-code-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.375rem;
 }
 
 .dc-codex-code-action-btn {
-    padding: 0.5rem;
+    padding: 0.375rem;
     background: #ffffff;
     color: #64748b;
     border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
+    border-radius: 0.25rem;
     cursor: pointer;
     transition: all 0.25s ease-in-out;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
 }
 
 .dc-codex-code-action-btn:hover {
@@ -675,18 +675,18 @@
 .dc-codex-search-bar {
     background: #f1f5f9;
     border-bottom: 1px solid #e2e8f0;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1rem;
     flex-shrink: 0;
 }
 
 .dc-codex-search-input-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.375rem;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    padding: 0.5rem;
+    border-radius: 0.25rem;
+    padding: 0.375rem;
 }
 
 .dc-codex-search-input-group input {
@@ -695,8 +695,8 @@
     outline: none;
     background: transparent;
     color: #1e293b;
-    font-size: 0.875rem;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.375rem;
 }
 
 .dc-codex-search-input-group button {
@@ -704,14 +704,14 @@
     border: none;
     color: #64748b;
     cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.25rem;
+    padding: 0.2rem;
+    border-radius: 0.2rem;
     transition: all 0.25s ease-in-out;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
 }
 
 .dc-codex-search-input-group button:hover {
@@ -1159,7 +1159,7 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
     .dc-codex-modal-sidebar {
-        width: 280px;
+        width: 240px;
     }
 }
 
@@ -1178,29 +1178,29 @@
         width: 100%;
         border-right: none;
         border-bottom: 1px solid #e2e8f0;
-        max-height: 250px;
-        min-height: 150px;
+        max-height: 200px;
+        min-height: 120px;
     }
     
     .dc-codex-file-list {
-        max-height: 120px;
+        max-height: 80px;
     }
     
     .dc-codex-modal-header {
-        padding: 1rem;
+        padding: 0.75rem;
     }
     
     .dc-codex-modal-title h2 {
-        font-size: 1.125rem;
+        font-size: 1rem;
     }
     
     .dc-codex-file-nav-controls {
-        padding: 0.5rem 1rem;
+        padding: 0.375rem 0.75rem;
     }
     
     .dc-codex-nav-btn {
-        padding: 0.375rem;
-        font-size: 0.75rem;
+        padding: 0.25rem;
+        font-size: 0.7rem;
     }
 }
 

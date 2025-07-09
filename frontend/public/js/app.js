@@ -173,6 +173,10 @@ function displayResults(data) {
     const searchResults = document.getElementById('searchResults');
     const resultCount = document.getElementById('resultCount');
     const noResults = document.getElementById('noResults');
+    const searchSection = document.querySelector('.search-section');
+    
+    // Add compact class to search section when showing results
+    searchSection.classList.add('compact');
     
     if (data.results.length === 0) {
         resultsSection.style.display = 'none';
@@ -557,6 +561,11 @@ function showLoading(show) {
 
 // Hide results
 function hideResults() {
+    const searchSection = document.querySelector('.search-section');
+    
+    // Remove compact class when hiding results to restore original size
+    searchSection.classList.remove('compact');
+    
     document.getElementById('resultsSection').style.display = 'none';
     document.getElementById('noResults').style.display = 'none';
 }

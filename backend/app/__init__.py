@@ -93,7 +93,31 @@ def create_app(config_name='production'):
     app.logger.info('Codex startup')
     
     # Import models here to avoid circular imports
-    from app.models import User
+    from app.models import User, File, Project, Tag
+    
+    # Create database tables if they don't exist (for cloud deployment)
+    with app.app_context():
+        try:
+            db.create_all()
+            app.logger.info('Database tables created/verified')
+            
+            # Create default admin if none exists
+            admin = User.query.filter_by(role='admin').first()
+            if not admin:
+                from werkzeug.security import generate_password_hash
+                default_admin = User(
+                    username='admin',
+                    password_hash=generate_password_hash('admin123'),
+                    email='admin@dccodex.local',
+                    full_name='System Administrator',
+                    role='admin',
+                    is_active=True
+                )
+                db.session.add(default_admin)
+                db.session.commit()
+                app.logger.info('Default admin user created')
+        except Exception as e:
+            app.logger.error(f'Database initialization error: {e}')
     
     @login_manager.user_loader
     def load_user(user_id):

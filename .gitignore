@@ -15,6 +15,3 @@ file_storage/*
 !file_storage/.gitkeep
 backups/*
 !backups/.gitkeep
-
-# Samples
-sample-data/*

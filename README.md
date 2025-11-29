@@ -1,15 +1,61 @@
 # DC Codex - Internal Code Search System
 
-A powerful, Google-like search system for your company's internal code repositories. DC Codex helps developers quickly find and reuse existing code from previous projects, significantly accelerating development.
+<p align="center">
+  <img src="frontend/public/images/dc-logo.svg" alt="DC Codex Logo" width="80" height="80">
+</p>
+
+<p align="center">
+  <strong>A powerful, Google-like search system for code repositories</strong><br>
+  Find and reuse code instantly with syntax highlighting, file preview, and smart search
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#demo">Live Demo</a> •
+  <a href="#installation">Installation</a> •
+  <a href="#tech-stack">Tech Stack</a>
+</p>
+
+---
+
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="screenshots/Browse_Page.png" alt="Browse Page" width="100%">
+      <p align="center"><strong>Repository Browser</strong></p>
+    </td>
+    <td width="50%">
+      <img src="screenshots/Search_Page.png" alt="Search Page" width="100%">
+      <p align="center"><strong>Search Interface</strong></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="screenshots/File_View_Interface.png" alt="File Preview" width="100%">
+      <p align="center"><strong>IDE-like File Preview</strong></p>
+    </td>
+    <td width="50%">
+      <img src="screenshots/Admin_Page.png" alt="Admin Panel" width="100%">
+      <p align="center"><strong>Admin Panel</strong></p>
+    </td>
+  </tr>
+</table>
+
+---
 
 ## 🚀 Features
 
 ### For Developers
-- **Instant Search**: Lightning-fast search across all company code
+- **Instant Search**: Lightning-fast full-text search across all company code
 - **Smart Suggestions**: Auto-complete search suggestions as you type
-- **Syntax Highlighting**: View code with proper syntax highlighting
+- **IDE-like File Preview**: View code with syntax highlighting, line numbers, and search within file
+- **Code Beautifier**: Automatically formats minified JS/CSS files for readability
+- **Repository Browser**: Navigate your codebase with a column-based file explorer
 - **Advanced Filters**: Filter by project, file type, or tags
-- **Download Files**: One-click download of any file
+- **Keyboard Shortcuts**: Navigate files quickly (ESC, F11, Ctrl+/- for font size)
 - **Real-time Results**: See results instantly as you search
 
 ### For Administrators
@@ -20,35 +66,87 @@ A powerful, Google-like search system for your company's internal code repositor
 - **User Management**: Control access with role-based permissions
 - **Search Analytics**: Track what developers are searching for
 
-## 📋 Requirements
+### File Preview Features
+- **Syntax Highlighting**: Support for 30+ languages (Python, JavaScript, C/C++, Java, etc.)
+- **Line Numbers**: Easy code navigation with clickable line numbers
+- **Font Size Control**: Adjustable font size (Ctrl+/-)
+- **Search in File**: Find text within the currently viewed file
+- **Copy to Clipboard**: One-click copy of entire file content
+- **File Navigation**: Navigate between files in search results or folders
+- **PDF Viewer**: Inline PDF document viewing
+- **Image Preview**: View images directly in the browser
 
-- **Python 3.8+**
-- **PostgreSQL 12+**
-- **Windows Server** (for deployment)
-- **4GB RAM minimum**
-- **10GB disk space** (depending on code repository size)
+## 🛠 Tech Stack
 
-## 🛠 Installation
+| Category | Technology |
+|----------|------------|
+| Backend | Python 3.11, Flask, SQLAlchemy |
+| Database | PostgreSQL |
+| Frontend | HTML5, CSS3, JavaScript |
+| Syntax Highlighting | Prism.js (30+ languages) |
+| Deployment | Render.com |
 
-### 1. Prerequisites
+---
 
-Install the following software:
-- [Python 3.8+](https://www.python.org/downloads/)
-- [PostgreSQL](https://www.postgresql.org/download/windows/)
-- [Git](https://git-scm.com/download/win) (optional)
+## 🌐 Deploy to Render.com (Free)
 
-### 2. Quick Setup
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
-1. **Extract/Clone the project** to `F:\Codex`
+### Quick Deploy Steps:
+
+1. **Fork this repository** to your GitHub
+
+2. **Go to [render.com](https://render.com)** → Sign up with GitHub
+
+3. **Create PostgreSQL Database**:
+   - New → PostgreSQL → Name: `codex-db` → Create (Free tier)
+   - Copy the **Internal Database URL**
+
+4. **Create Web Service**:
+   - New → Web Service → Connect your forked repo
+   - Settings:
+     - **Build Command**: `pip install -r requirements.txt`
+     - **Start Command**: `gunicorn --chdir backend app:app`
+   - Environment Variables:
+     ```
+     DATABASE_URL = [paste Internal Database URL]
+     SECRET_KEY = your-secret-key-here
+     CODE_REPOSITORY_PATH = /opt/render/project/src/sample-data
+     ```
+
+5. **Done!** Your app will be live at `https://your-app.onrender.com`
+
+---
+
+## 💻 Local Installation
+
+### Prerequisites
+- Python 3.8+
+- PostgreSQL 12+
+
+### Quick Setup
+   ```bash
+   git clone https://github.com/om-jasani/codex.git
+   cd codex
+   ```
 
 2. **Configure environment**:
-   - Copy `.env.example` to `.env`
-   - Edit `.env` with your database credentials and settings
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database credentials and settings
+   ```
 
 3. **Run deployment script**:
+   
+   **Windows:**
    ```batch
-   cd F:\Codex
    deploy.bat
+   ```
+   
+   **Linux/macOS:**
+   ```bash
+   chmod +x deploy.sh
+   ./deploy.sh
    ```
 
    This will:
@@ -58,187 +156,64 @@ Install the following software:
    - Create an admin user
 
 4. **Start the application**:
+   
+   **Windows (PowerShell):**
    ```powershell
    .\run.ps1
    ```
-
-## ⚙️ Configuration
-
-### Environment Variables (.env)
-
-Key settings to configure:
-
-```env
-# Database
-DATABASE_HOST=localhost
-DATABASE_NAME=codex_db
-DATABASE_USER=codex_user
-DATABASE_PASSWORD=your_secure_password
-
-# File Storage
-CODE_REPOSITORY_PATH=\\company-server\projects
-FILE_STORAGE_PATH=F:\Codex\file_storage
-
-# Network
-LOCAL_DOMAIN=codex.local
-APP_PORT=5000
-
-# Security
-ENABLE_AUTHENTICATION=True
-SECRET_KEY=generate_a_random_key_here
-```
-
-### Network Configuration
-
-To make Codex accessible as `http://codex.local`:
-
-1. **On the server**, add to `C:\Windows\System32\drivers\etc\hosts`:
-   ```
-   127.0.0.1    codex.local
+   
+   **Linux/macOS:**
+   ```bash
+   python backend/app.py
    ```
 
-2. **On client machines**, add:
-   ```
-   SERVER_IP    codex.local
-   ```
+5. **Access the application**:
+   - Open `http://localhost:5000`
+   - Login: `admin` / `admin123`
 
-3. **Configure Windows Firewall** to allow port 5000:
-   ```powershell
-   New-NetFirewallRule -DisplayName "Codex" -Direction Inbound -Protocol TCP -LocalPort 5000 -Action Allow
-   ```
-
-## 📖 Usage
-
-### For Developers
-
-1. **Access Codex** at `http://codex.local` or `http://localhost:5000`
-2. **Login** with your credentials
-3. **Search** for code using keywords like:
-   - Function names: `calculateSpeed`
-   - Hardware: `ESP32`, `Arduino`
-   - Features: `bluetooth`, `sensor`
-   - File types: `.ino`, `.cpp`
-
-### For Administrators
-
-1. **Access Admin Panel** via the user menu
-2. **Add Files**:
-   - Click "Add New File"
-   - Enter file details and tags
-   - Save
-3. **Index Repository**:
-   - Go to "File Indexing"
-   - Click "Start Indexing"
-   - Wait for completion
+---
 
 ## 🗂 Project Structure
 
 ```
-F:\Codex\
-├── backend/              # Flask backend application
-│   ├── app.py           # Main application entry
-│   └── app/             # Application modules
-│       ├── api/         # API endpoints
-│       ├── models/      # Database models
-│       ├── services/    # Business logic
-│       └── utils/       # Utility functions
-├── frontend/            # Web interface
-│   ├── browse.html      # Repository browser (default page)
-│   ├── index.html       # Search page
-│   ├── admin.html       # Admin panel
-│   └── public/          # Static assets
-├── database/            # Database scripts
-├── config/              # Configuration files
-├── deployment/          # Deployment scripts
-└── logs/               # Application logs
+codex/
+├── backend/           # Flask API
+│   └── app/
+│       ├── api/       # REST endpoints
+│       ├── models/    # Database models
+│       └── services/  # Business logic
+├── frontend/          # Web interface
+│   ├── browse.html    # File browser
+│   ├── index.html     # Search page
+│   └── public/        # CSS, JS, images
+├── sample-data/       # Demo code files
+└── requirements.txt   # Dependencies
 ```
 
-## 🔌 API Endpoints
+## ⌨️ Keyboard Shortcuts
 
-### Search API
-- `GET /api/search?q=keyword` - Search for files
-- `GET /api/search/suggestions?q=key` - Get search suggestions
-
-### File API
-- `GET /api/files/{id}` - Get file details
-- `GET /api/files/{id}/content` - View file content
-- `GET /api/files/{id}/download` - Download file
-
-### Admin API (requires admin role)
-- `POST /api/admin/files` - Add new file
-- `PUT /api/admin/files/{id}` - Update file
-- `DELETE /api/admin/files/{id}` - Delete file
-- `POST /api/admin/projects` - Create project
-- `POST /api/admin/tags` - Create tag
-- `POST /api/admin/index` - Start indexing
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**PostgreSQL Connection Error**
-- Ensure PostgreSQL service is running
-- Check database credentials in `.env`
-- Verify PostgreSQL is accepting connections
-
-**"Module not found" Error**
-- Activate virtual environment: `venv\Scripts\activate`
-- Reinstall dependencies: `pip install -r requirements.txt`
-
-**Cannot access http://codex.local**
-- Check hosts file configuration
-- Verify firewall settings
-- Try accessing via `http://localhost:5000`
-
-**Indexing fails**
-- Verify `CODE_REPOSITORY_PATH` in `.env`
-- Check file permissions
-- Review logs in `logs/codex.log`
-
-## 🔐 Security
-
-- Always use HTTPS in production
-- Change default admin password immediately
-- Regularly update dependencies
-- Enable authentication for all users
-- Restrict file access to company network only
-
-## 📊 Performance Optimization
-
-- **Database**: Create indexes on frequently searched fields
-- **Caching**: Enable Redis for better performance
-- **File Indexing**: Schedule during off-hours
-- **Search**: Limit results per page
-
-## 🚨 Maintenance
-
-### Daily
-- Monitor disk space
-- Check application logs for errors
-
-### Weekly
-- Run file indexing to catch new files
-- Review search logs for insights
-- Backup database
-
-### Monthly
-- Update dependencies
-- Clean old logs
-- Review and optimize slow queries
-
-## 📝 License
-
-This is proprietary software for internal company use only.
-
-## 🤝 Support
-
-For issues or questions:
-- Check logs at `F:\Codex\logs\`
-- Contact IT department
-- Review this documentation
+| Shortcut | Action |
+|----------|--------|
+| `ESC` | Close file preview |
+| `F11` | Toggle fullscreen |
+| `Ctrl + +/-` | Adjust font size |
+| `Ctrl + F` | Search in file |
+| `↑` / `↓` | Navigate files |
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: June 2025  
-**Developed for**: Medical Instruments Company
+## 📝 License
+
+MIT License - feel free to use for your own projects!
+
+## 👤 Author
+
+**Om Jasani**
+- GitHub: [@om-jasani](https://github.com/om-jasani)
+
+---
+
+<p align="center">
+  ⭐ Star this repo if you find it useful!
+</p>
+

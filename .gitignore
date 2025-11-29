@@ -1,8 +1,20 @@
+# Python
 venv/
 __pycache__/
 *.pyc
+
+# Logs
 *.log
-logs/
-logs/*
 logs/*.log
-sample-data/
+
+# Environment
+.env
+
+# Local files
+file_storage/*
+!file_storage/.gitkeep
+backups/*
+!backups/.gitkeep
+
+# Samples
+sample-data/*

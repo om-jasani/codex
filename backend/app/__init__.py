@@ -32,9 +32,18 @@ def create_app(config_name='production'):
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
     
-    # URL-encode the password to handle special characters like @, #, etc.
-    db_password = quote_plus(os.getenv('DATABASE_PASSWORD', ''))
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DATABASE_USER')}:{db_password}@{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_NAME')}"
+    # Database configuration - support DATABASE_URL (for cloud platforms) or individual vars
+    database_url = os.getenv('DATABASE_URL')
+    if database_url:
+        # Handle postgres:// vs postgresql:// (Heroku/Railway use postgres://)
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    else:
+        # URL-encode the password to handle special characters like @, #, etc.
+        db_password = quote_plus(os.getenv('DATABASE_PASSWORD', ''))
+        app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DATABASE_USER')}:{db_password}@{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_NAME')}"
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
     

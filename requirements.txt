@@ -12,10 +12,10 @@ SQLAlchemy==2.0.23
 
 # Search and Text Processing
 fuzzywuzzy==0.18.0
-python-Levenshtein==0.23.0
+rapidfuzz>=3.0.0
 
 # File Handling
-python-magic==0.4.27
+# python-magic removed - not needed for cloud deployment
 chardet==5.2.0
 
 # Security

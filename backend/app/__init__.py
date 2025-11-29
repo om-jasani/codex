@@ -58,22 +58,37 @@ def create_app(config_name='production'):
     login_manager.session_protection = 'strong'
     
     # Configure logging
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
+    # In production (cloud), use stdout logging; locally use file logging
+    if os.getenv('RENDER') or os.getenv('RAILWAY_ENVIRONMENT') or os.getenv('DYNO'):
+        # Cloud environment - log to stdout (captured by platform)
+        stream_handler = logging.StreamHandler(sys.stdout)
+        stream_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        stream_handler.setLevel(logging.INFO)
+        app.logger.addHandler(stream_handler)
+    else:
+        # Local environment - log to file
+        log_dir = 'logs'
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        
+        log_file = os.getenv('LOG_FILE_PATH', os.path.join(log_dir, 'codex.log'))
+        log_dir = os.path.dirname(log_file)
+        if log_dir and not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+        
+        file_handler = RotatingFileHandler(
+            log_file,
+            maxBytes=10485760,  # 10MB
+            backupCount=int(os.getenv('LOG_BACKUP_COUNT', 5))
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
     
-    log_file = os.getenv('LOG_FILE_PATH', 'logs/codex.log')
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    
-    file_handler = RotatingFileHandler(
-        log_file,
-        maxBytes=10485760,  # 10MB
-        backupCount=int(os.getenv('LOG_BACKUP_COUNT', 5))
-    )
-    file_handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    ))
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.INFO)
     app.logger.info('Codex startup')
     

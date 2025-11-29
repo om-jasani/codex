@@ -15,6 +15,7 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash
 import mimetypes
+from urllib.parse import quote_plus
 
 # Load environment variables
 load_dotenv()
@@ -30,7 +31,10 @@ def create_app(config_name='production'):
     
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DATABASE_USER')}:{os.getenv('DATABASE_PASSWORD')}@{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_NAME')}"
+    
+    # URL-encode the password to handle special characters like @, #, etc.
+    db_password = quote_plus(os.getenv('DATABASE_PASSWORD', ''))
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DATABASE_USER')}:{db_password}@{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_NAME')}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
     

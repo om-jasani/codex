@@ -4,7 +4,7 @@ Search API Endpoints
 
 from flask import Blueprint, request, jsonify
 from flask_login import current_user
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, select
 from app.models import File, Tag, SearchLog, Project, db
 from app.utils.search import fuzzy_search, get_search_suggestions
 import os
@@ -34,9 +34,10 @@ def search():
         search_query = search_query.filter(File.filetype == filetype_filter)
     
     # Search in filename, description, and tags
-    tag_subquery = db.session.query(File.id).join(File.tags).filter(
+    # Use select() explicitly to avoid SQLAlchemy warning
+    tag_subquery = select(File.id).join(File.tags).filter(
         Tag.name.ilike(f'%{query}%')
-    ).subquery()
+    ).scalar_subquery()
     
     search_query = search_query.filter(
         or_(

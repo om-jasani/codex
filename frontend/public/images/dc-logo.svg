@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/>
+      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded rectangle background -->
+  <rect x="2" y="2" width="44" height="44" rx="10" ry="10" fill="url(#bgGradient)"/>
+  <!-- DC Text -->
+  <text x="23" y="35" font-family="'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="-1">DC</text>
+</svg>

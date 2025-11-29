@@ -640,6 +640,14 @@ class DCCodexFilePreview {
     renderCodeContent(file, fileData, container) {
         let content = fileData.content || '';
         
+        // Debug: Log content info
+        console.log('[DC Codex Debug] renderCodeContent called');
+        console.log('[DC Codex Debug] Content length:', content.length);
+        console.log('[DC Codex Debug] First 200 chars:', content.substring(0, 200));
+        console.log('[DC Codex Debug] Contains \\n:', content.includes('\n'));
+        console.log('[DC Codex Debug] Contains \\r\\n:', content.includes('\r\n'));
+        console.log('[DC Codex Debug] Number of newlines:', (content.match(/\n/g) || []).length);
+        
         if (!content) {
             container.innerHTML = `
                 <div class="dc-codex-file-content-wrapper">
@@ -671,9 +679,29 @@ class DCCodexFilePreview {
             } catch (e) {
                 // Keep original content if formatting fails
             }
+        } else if (ext === 'js' || ext === 'jsx' || ext === 'ts' || ext === 'tsx') {
+            // Beautify minified JavaScript/TypeScript files
+            try {
+                content = this.beautifyJavaScript(content);
+            } catch (e) {
+                // Keep original content if beautifying fails
+            }
+        } else if (ext === 'css' || ext === 'scss' || ext === 'less') {
+            // Beautify minified CSS files
+            try {
+                content = this.beautifyCSS(content);
+            } catch (e) {
+                // Keep original content if beautifying fails
+            }
         }
         
-        const lines = content.split('\n');
+        // Normalize line endings (handle both Windows \r\n and Unix \n)
+        const normalizedContent = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const lines = normalizedContent.split('\n');
+        
+        // Debug: Log line count
+        console.log('[DC Codex Debug] Number of lines after split:', lines.length);
+        console.log('[DC Codex Debug] First 3 lines:', lines.slice(0, 3));
         
         // Create HTML with line numbers as spans for precise control
         const codeWithLineNumbers = lines.map((line, index) => {
@@ -1207,6 +1235,197 @@ class DCCodexFilePreview {
             pad += indent;
             return result;
         }).join('\n');
+    }
+    
+    // Beautify minified JavaScript code
+    beautifyJavaScript(code) {
+        // Check if already formatted (has reasonable line count)
+        const lineCount = (code.match(/\n/g) || []).length;
+        const avgLineLength = code.length / (lineCount + 1);
+        
+        // If average line length is reasonable, don't beautify
+        if (avgLineLength < 200 && lineCount > 10) {
+            return code;
+        }
+        
+        let result = '';
+        let indentLevel = 0;
+        let inString = false;
+        let stringChar = '';
+        let inComment = false;
+        let inMultilineComment = false;
+        let i = 0;
+        
+        const indent = () => '    '.repeat(indentLevel);
+        
+        while (i < code.length) {
+            const char = code[i];
+            const nextChar = code[i + 1] || '';
+            const prevChar = code[i - 1] || '';
+            
+            // Handle string literals
+            if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\' && !inComment && !inMultilineComment) {
+                if (!inString) {
+                    inString = true;
+                    stringChar = char;
+                } else if (char === stringChar) {
+                    inString = false;
+                }
+                result += char;
+                i++;
+                continue;
+            }
+            
+            if (inString) {
+                result += char;
+                i++;
+                continue;
+            }
+            
+            // Handle comments
+            if (char === '/' && nextChar === '/' && !inMultilineComment) {
+                // Single line comment - find end of line
+                let commentEnd = code.indexOf('\n', i);
+                if (commentEnd === -1) commentEnd = code.length;
+                result += code.substring(i, commentEnd);
+                i = commentEnd;
+                continue;
+            }
+            
+            if (char === '/' && nextChar === '*' && !inMultilineComment) {
+                inMultilineComment = true;
+                result += '/*';
+                i += 2;
+                continue;
+            }
+            
+            if (char === '*' && nextChar === '/' && inMultilineComment) {
+                inMultilineComment = false;
+                result += '*/';
+                i += 2;
+                continue;
+            }
+            
+            if (inMultilineComment) {
+                result += char;
+                i++;
+                continue;
+            }
+            
+            // Handle braces
+            if (char === '{') {
+                result += ' {\n';
+                indentLevel++;
+                result += indent();
+                i++;
+                // Skip whitespace after brace
+                while (i < code.length && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n')) i++;
+                continue;
+            }
+            
+            if (char === '}') {
+                indentLevel = Math.max(0, indentLevel - 1);
+                result = result.trimEnd() + '\n' + indent() + '}';
+                i++;
+                // Add newline after } unless followed by else, catch, finally, etc.
+                const lookAhead = code.substring(i, i + 10).trim();
+                if (!lookAhead.startsWith('else') && !lookAhead.startsWith('catch') && 
+                    !lookAhead.startsWith('finally') && !lookAhead.startsWith(',') &&
+                    !lookAhead.startsWith(')') && !lookAhead.startsWith(';')) {
+                    result += '\n' + indent();
+                }
+                continue;
+            }
+            
+            // Handle semicolons
+            if (char === ';') {
+                result += ';\n' + indent();
+                i++;
+                // Skip whitespace after semicolon
+                while (i < code.length && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n')) i++;
+                continue;
+            }
+            
+            // Handle commas in object/array context
+            if (char === ',') {
+                result += ',\n' + indent();
+                i++;
+                // Skip whitespace after comma
+                while (i < code.length && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n')) i++;
+                continue;
+            }
+            
+            // Regular character
+            result += char;
+            i++;
+        }
+        
+        // Clean up excessive blank lines
+        result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
+        result = result.replace(/^\s+/, ''); // Trim start
+        
+        return result;
+    }
+    
+    // Beautify minified CSS code
+    beautifyCSS(code) {
+        // Check if already formatted
+        const lineCount = (code.match(/\n/g) || []).length;
+        const avgLineLength = code.length / (lineCount + 1);
+        
+        if (avgLineLength < 150 && lineCount > 10) {
+            return code;
+        }
+        
+        let result = '';
+        let indentLevel = 0;
+        let inString = false;
+        let stringChar = '';
+        
+        const indent = () => '    '.repeat(indentLevel);
+        
+        for (let i = 0; i < code.length; i++) {
+            const char = code[i];
+            const prevChar = code[i - 1] || '';
+            
+            // Handle strings
+            if ((char === '"' || char === "'") && prevChar !== '\\') {
+                if (!inString) {
+                    inString = true;
+                    stringChar = char;
+                } else if (char === stringChar) {
+                    inString = false;
+                }
+                result += char;
+                continue;
+            }
+            
+            if (inString) {
+                result += char;
+                continue;
+            }
+            
+            if (char === '{') {
+                result += ' {\n';
+                indentLevel++;
+                result += indent();
+            } else if (char === '}') {
+                indentLevel = Math.max(0, indentLevel - 1);
+                result = result.trimEnd() + '\n' + indent() + '}\n' + indent();
+            } else if (char === ';') {
+                result += ';\n' + indent();
+            } else if (char === ',') {
+                result += ',\n' + indent();
+            } else {
+                result += char;
+            }
+        }
+        
+        // Clean up
+        result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
+        result = result.replace(/^\s+/, '');
+        
+        return result;
     }
     
     escapeHtml(text) {

@@ -113,7 +113,8 @@ WHERE f.is_active = TRUE
 GROUP BY f.id, f.filename, f.filepath, f.filetype, f.description, 
          f.size, f.line_count, f.modified_date, p.name;
 
--- Insert default admin user (password: changeme123)
-INSERT INTO users (username, password_hash, email, full_name, role)
-VALUES ('admin', '$2b$12$YourHashedPasswordHere', 'admin@company.local', 'System Administrator', 'admin')
-ON CONFLICT (username) DO NOTHING;
+-- Insert default admin user (password: admin123) - uses werkzeug scrypt hash
+-- Note: This is a placeholder. The actual admin is created by the setup script.
+-- INSERT INTO users (username, password_hash, email, full_name, role, is_active)
+-- VALUES ('admin', 'scrypt:hash', 'admin@company.local', 'System Administrator', 'admin', TRUE)
+-- ON CONFLICT (username) DO NOTHING;

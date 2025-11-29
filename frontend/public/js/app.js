@@ -448,11 +448,11 @@ async function viewFileFromSearch(fileId, resultIndex) {
         
         // Use the file preview module to show the file with search context
         if (dcCodexFilePreview) {
-            // Override the API endpoint for file content
-            const originalShowFile = dcCodexFilePreview.showFile;
+            // Store original method for restoration
+            const originalShowFile = dcCodexFilePreview.showFile.bind(dcCodexFilePreview);
+            
+            // Override the showFile method to use our file ID endpoint
             dcCodexFilePreview.showFile = async function(file, context) {
-                // Temporarily override to use our file ID endpoint
-                const originalApiBase = this.options.apiBase;
                 this.currentFile = file;
                 this.currentContext = context;
                 
@@ -483,14 +483,12 @@ async function viewFileFromSearch(fileId, resultIndex) {
                     console.error('Error loading file:', error);
                     this.showModal(file, { error: 'Failed to connect to server' }, false);
                 }
-                
-                // Restore original API base
-                this.options.apiBase = originalApiBase;
             };
             
-            dcCodexFilePreview.showFileFromSearch(file, searchFiles, currentSearchQuery);
+            // Wait for the async operation to complete before restoring
+            await dcCodexFilePreview.showFileFromSearch(file, searchFiles, currentSearchQuery);
             
-            // Restore original method
+            // Restore original method after async operation completes
             dcCodexFilePreview.showFile = originalShowFile;
         } else {
             console.error('File preview module not loaded');

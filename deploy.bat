@@ -51,6 +51,9 @@ REM Check if .env file exists
 if not exist .env (
     echo Error: .env file not found
     echo Please copy .env.example to .env and configure it
+    echo.
+    echo IMPORTANT: If your database password contains special characters
+    echo like @ or #, they will be handled automatically.
     pause
     exit /b 1
 )
@@ -61,6 +64,11 @@ echo Setting up database...
 python backend\app\scripts\setup_database.py
 if errorlevel 1 (
     echo Error: Database setup failed
+    echo.
+    echo Common issues:
+    echo 1. PostgreSQL is not running
+    echo 2. Database credentials in .env are incorrect
+    echo 3. Database user does not have permission to create databases
     pause
     exit /b 1
 )
@@ -70,12 +78,17 @@ echo.
 echo Creating directories...
 if not exist logs mkdir logs
 if not exist file_storage mkdir file_storage
+if not exist backups mkdir backups
 
 REM Display success message
 echo.
 echo ===============================================
 echo Deployment completed successfully!
 echo ===============================================
+echo.
+echo Default admin credentials:
+echo   Username: admin
+echo   Password: admin123
 echo.
 echo To start the application:
 echo 1. Activate virtual environment: venv\Scripts\activate

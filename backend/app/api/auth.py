@@ -136,8 +136,14 @@ def change_password():
     return jsonify({'message': 'Password changed successfully'})
 
 # Create default admin if none exists
+_admin_checked = False
+
 def create_default_admin():
     """Create default admin user if no admin exists"""
+    global _admin_checked
+    if _admin_checked:
+        return
+    
     try:
         # Check if any admin exists
         admin_exists = User.query.filter_by(role='admin').first()
@@ -148,7 +154,8 @@ def create_default_admin():
                 username='admin',
                 email='admin@codex.local',
                 full_name='System Administrator',
-                role='admin'
+                role='admin',
+                is_active=True
             )
             admin.set_password('admin123')
             
@@ -157,12 +164,16 @@ def create_default_admin():
             
             current_app.logger.info('Default admin user created')
             print("Default admin user created - Username: admin, Password: admin123")
+        
+        _admin_checked = True
     except Exception as e:
         current_app.logger.error(f'Error creating default admin: {str(e)}')
         db.session.rollback()
 
-# Register this to run when app context is available
+# Register this to run once on first request
 @auth_bp.before_app_request
 def initialize_auth():
-    """Initialize authentication on each request"""
-    create_default_admin()
+    """Initialize authentication on first request only"""
+    global _admin_checked
+    if not _admin_checked:
+        create_default_admin()

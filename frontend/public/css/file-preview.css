@@ -803,6 +803,12 @@
     color: inherit;
 }
 
+/* Ensure code element displays block for proper div children */
+#dcCodexCodeText {
+    display: block !important;
+    width: 100%;
+}
+
 /* Line Wrapper for Perfect Alignment */
 .dc-codex-code-line-wrapper {
     display: flex;
@@ -925,6 +931,31 @@
 .dc-codex-code-wrapper .token.important,
 .dc-codex-code-wrapper .token.variable {
     color: #db2777;
+}
+
+/* Override Prism styles to ensure our line structure works */
+.dc-codex-code-wrapper pre[class*="language-"],
+.dc-codex-code-wrapper code[class*="language-"] {
+    white-space: pre;
+    word-break: normal;
+    word-wrap: normal;
+    overflow-wrap: normal;
+    hyphens: none;
+    background: transparent;
+    text-shadow: none;
+}
+
+/* Ensure Prism tokens don't break our layout */
+.dc-codex-code-wrapper .token {
+    display: inline;
+    background: transparent !important;
+}
+
+/* Make sure line wrappers maintain structure */
+.dc-codex-code-line-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
 }
 
 /* Image and PDF Wrappers */

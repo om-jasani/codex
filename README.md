@@ -88,36 +88,6 @@
 
 ---
 
-## 🌐 Deploy to Render.com (Free)
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-
-### Quick Deploy Steps:
-
-1. **Fork this repository** to your GitHub
-
-2. **Go to [render.com](https://render.com)** → Sign up with GitHub
-
-3. **Create PostgreSQL Database**:
-   - New → PostgreSQL → Name: `codex-db` → Create (Free tier)
-   - Copy the **Internal Database URL**
-
-4. **Create Web Service**:
-   - New → Web Service → Connect your forked repo
-   - Settings:
-     - **Build Command**: `pip install -r requirements.txt`
-     - **Start Command**: `gunicorn --chdir backend app:app`
-   - Environment Variables:
-     ```
-     DATABASE_URL = [paste Internal Database URL]
-     SECRET_KEY = your-secret-key-here
-     CODE_REPOSITORY_PATH = /opt/render/project/src/sample-data
-     ```
-
-5. **Done!** Your app will be live at `https://your-app.onrender.com`
-
----
-
 ## 💻 Local Installation
 
 ### Prerequisites

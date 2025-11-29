@@ -10,12 +10,22 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#screenshots">Screenshots</a> •
-  <a href="#demo">Live Demo</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#tech-stack">Tech Stack</a>
+  <a href="#-features">Features</a> •
+  <a href="#-screenshots">Screenshots</a> •
+  <a href="#-live-demo">Live Demo</a> •
+  <a href="#-local-installation">Installation</a> •
+  <a href="#-tech-stack">Tech Stack</a>
 </p>
+
+---
+
+## 🌐 Live Demo
+
+**Try it now:** [https://dc-codex.onrender.com/](https://dc-codex.onrender.com/)
+
+> 🔐 **Demo Credentials:**  
+> Username: `admin`  
+> Password: `admin123`
 
 ---
 
